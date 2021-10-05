@@ -12,36 +12,34 @@ otherwise x unchanged
 
 '''
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 
 def P_Boltzman(Spins, index):
 	''' 
 	Compute the Boltzman probability of spin number index
-		The energy is given by E_i = exp(-sum_neraestNeighboors S_i*S_j)
+		The energy is given by E_i = -sum_neraestNeighboors S_i*S_j
 	Spins : chain of spins in 1D with periodical boundary conditions
 	index : position at which the probability wants to be computed
 	'''
+	N = Spins.size
 
 	#Computing partition function
-	N = Spins.size
 	Z = 0
 	for i in range(N):
-		#Implementing boundary conditions : S_N = S_0
-		if i==0:
-			Z += np.exp(-Spins[i]*Spins[-1]-Spins[i]*Spins[i+1])
-		elif i==N-1:
-			Z += np.exp(-Spins[i]*Spins[i-1]-Spins[i]*Spins[0])
+		#Implementing boundary condition : S_N = S_0
+		if i==N-1:
+			Z += np.exp(Spins[i]*Spins[0])
 		else :
-			Z += np.exp(-Spins[i]*Spins[i-1]-Spins[i]*Spins[i+1])
+			Z += np.exp(Spins[i]*Spins[i+1])
 
 	#Single probability
 	if index==0 :
-		P_i = np.exp(-Spins[index]*Spins[index+1] - Spins[index]*Spins[-1])
+		P_i = np.exp(Spins[index]*Spins[index+1] + Spins[index]*Spins[-1])
 	elif index==N-1:
-		P_i = np.exp(-Spins[index]*Spins[0] - Spins[index]*Spins[index-1])
+		P_i = np.exp(Spins[index]*Spins[0] + Spins[index]*Spins[index-1])
 	else :
-		P_i = np.exp(-Spins[index]*Spins[index+1] - Spins[index]*Spins[index-1])
+		P_i = np.exp(Spins[index]*Spins[index+1] + Spins[index]*Spins[index-1])
 
 	return P_i/Z
 
@@ -57,33 +55,49 @@ def T(S_initial, S_next):
 
 ###############################################
 #Number of particles
-N = 5
+N = 100
 
 #Number of loops to execute
-n_loops = 10
+n_loops = 5000
 
 #Creating vector of spins, randomly +1 or -1
 S = np.random.choice([-1.0, 1.0], N)
 #print(S)
 
-Energy = np.zeros(N)
+Energy = np.zeros(n_loops)
 
 for i in range(n_loops):
 	#Choose randomly spin to flip
 	x_new = np.random.randint(0,N)
-	S_temp = np.copy(S)
-	S_temp[x_new] = -S_temp[x_new]
+	S_new = np.copy(S)
+	S_new[x_new] = -S_new[x_new]
 
 	#Compute test
 
-	R = P_Boltzman(S_temp, x_new)/P_Boltzman(S, x_new) * T(S_temp, S)/T(S, S_temp)
+	R = P_Boltzman(S_new, x_new)/P_Boltzman(S, x_new)
 
 	eta = np.random.uniform()
 
 	if R > eta:
-		S = S_temp
+		S = np.copy(S_new)
+
+	
+	#Computing the enrgy of the system
+	for k in range(N):
+		if k != N-1:
+			Energy[i] += S[k]*S[k+1]
+		else :
+			Energy[i] += S[k]*S[0]
 
 
+	if i==0 or i==n_loops-1:
+		print(f'S={S} and E = {Energy[i]}')
+
+E_moy = np.sum(Energy)/n_loops
 
 
-	print(f'S={S}')
+plt.plot(Energy, 'o')
+plt.title(f"Mean Energy = {E_moy}")
+plt.xlabel('Iteration')
+plt.ylabel("Energy")
+plt.show()
