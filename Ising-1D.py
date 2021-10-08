@@ -1,15 +1,6 @@
 '''
 Simulate a chain of N spins s=+/-1 using Metropolis-Hasting Algorithm
 
-0. create vector of N spins pm1
-
-loop
-T(x->x') = .....
-A = min(a, P(x)/P(x') * T(x->x')/T(x'->x))
-0 < eta < 1
-if A > eta, x = x'
-otherwise x unchanged
-
 '''
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,7 +9,7 @@ import matplotlib.pyplot as plt
 def P_Boltzman(Spins, index):
 	''' 
 	Compute the Boltzman probability of spin number index
-		The energy is given by E_i = -sum_neraestNeighboors S_i*S_j
+		The energy is given by E_i = -sum_nearestNeighboors S_i*S_j
 	Spins : chain of spins in 1D with periodical boundary conditions
 	index : position at which the probability wants to be computed
 	'''
@@ -55,10 +46,10 @@ def T(S_initial, S_next):
 
 ###############################################
 #Number of particles
-N = 100
+N = 1000
 
 #Number of loops to execute
-n_loops = 5000
+n_loops = 500
 
 #Creating vector of spins, randomly +1 or -1
 S = np.random.choice([-1.0, 1.0], N)
@@ -73,7 +64,6 @@ for i in range(n_loops):
 	S_new[x_new] = -S_new[x_new]
 
 	#Compute test
-
 	R = P_Boltzman(S_new, x_new)/P_Boltzman(S, x_new)
 
 	eta = np.random.uniform()
@@ -85,19 +75,24 @@ for i in range(n_loops):
 	#Computing the enrgy of the system
 	for k in range(N):
 		if k != N-1:
-			Energy[i] += S[k]*S[k+1]
+			Energy[i] -= S[k]*S[k+1]
 		else :
-			Energy[i] += S[k]*S[0]
+			Energy[i] -= S[k]*S[0]
 
 
-	if i==0 or i==n_loops-1:
-		print(f'S={S} and E = {Energy[i]}')
+#	if i==0 or i==n_loops-1:
+#		print(f'S={S} and E = {Energy[i]}')
 
-E_moy = np.sum(Energy)/n_loops
+#E_moy = np.sum(Energy)/n_loops
 
-
+'''
 plt.plot(Energy, 'o')
-plt.title(f"Mean Energy = {E_moy}")
+plt.title(f"N_particles = {N}, N_loops = {n_loops}, E_mean = {E_moy}")
 plt.xlabel('Iteration')
 plt.ylabel("Energy")
-plt.show()
+plt.show();
+'''
+
+plt.hist(Energy, bins='auto')
+plt.ylabel('Occurences')
+plt.show();
