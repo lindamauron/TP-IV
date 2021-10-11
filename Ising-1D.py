@@ -1,98 +1,120 @@
 '''
-Simulate a chain of N spins s=+/-1 using Metropolis-Hasting Algorithm
-
+Simulate a chain of N spins s=+/-1 using MCMC with Metropolis-Hasting Algorithm
 '''
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.special
 
+###############################################
+# Functions
 
-def P_Boltzman(Spins, index):
-	''' 
-	Compute the Boltzman probability of spin number index
-		The energy is given by E_i = -sum_nearestNeighboors S_i*S_j
-	Spins : chain of spins in 1D with periodical boundary conditions
-	index : position at which the probability wants to be computed
+def energy(sample):
 	'''
-	N = Spins.size
-
-	#Computing partition function
-	Z = 0
-	for i in range(N):
-		#Implementing boundary condition : S_N = S_0
-		if i==N-1:
-			Z += np.exp(Spins[i]*Spins[0])
-		else :
-			Z += np.exp(Spins[i]*Spins[i+1])
-
-	#Single probability
-	if index==0 :
-		P_i = np.exp(Spins[index]*Spins[index+1] + Spins[index]*Spins[-1])
-	elif index==N-1:
-		P_i = np.exp(Spins[index]*Spins[0] + Spins[index]*Spins[index-1])
-	else :
-		P_i = np.exp(Spins[index]*Spins[index+1] + Spins[index]*Spins[index-1])
-
-	return P_i/Z
-
-
-def T(S_initial, S_next):
+	Computes the energy based on Ising model E = - sum_nearest_neighboors S_i*S_j
+	
+	sample (1D array): spins of the sample 
+	Return : total energy (scalar)
 	'''
-	Computes the local probability to switch spin x_init -> x_next
-	S_initial : intial chain of spins in 1D with periodical boundary conditions
-	S_next : new spin chain with same conditions
+	energy = 0
+	for i in range(sample.size-1) : 
+		energy -= sample[i]*sample[i+1]
+	return energy-sample[0]*sample[-1]
+
+def boltzmannn_unnormalized(sample, temperature):
 	'''
-	return 1.0
+	Computes the unnormalized Boltzmann probability of the sample
+	
+	sample (1D array): spins of the system
+	temperature (scalar): temperature of the system (in [eV], i.e. times the boltzmannn constant)
+	
+	Return : unnormalized probability (scalar)
+	'''
+	return np.exp(-energy(sample)/temperature)
+
+def partition_function(sample_size, temperature):
+	'''
+	Computes the partition function of the Boltzmann probability 
+	for a sample of a given size at given temperature
+
+	sample_size (scalar): number of spins in the chain
+	temperature (scalar): temperature of the system (in [eV], i.e. times the boltzmannn constant)
+
+	Return : partition function (scalar)
+	'''
+	return np.power(2*np.cosh(1/temperature), sample_size) + np.power(2*np.sinh(1/temperature), sample_size)
+
+def boltzmannn(sample, temperature):
+	'''
+	Computes the Boltzmann probability of the state of the sample
+
+	sample_size (scalar): number of spins in the chain
+	temperature (scalar): temperature of the system (in [eV], i.e. times the boltzmannn constant)
+
+	Return : boltzmann probability (scalar)
+	'''
+
+	return boltzmannn_unnormalized(sample, temperature)/partition_function(sample.size, temperature)
+
+###############################################
+# Parameters
+#Number of particles
+n_spins = 500
+
+#Temperature
+temperature = 1.0 #[eV]
+
+#Warm up
+warm_up_iteration = 1500
+
+#Number of loops to execute
+n_loops = 50000
 
 
 ###############################################
-#Number of particles
-N = 1000
-
-#Number of loops to execute
-n_loops = 500
 
 #Creating vector of spins, randomly +1 or -1
-S = np.random.choice([-1.0, 1.0], N)
-#print(S)
+sample = np.random.choice([-1.0, 1.0], n_spins)
+#print(f'{sample}, {energy(sample)}')
 
-Energy = np.zeros(n_loops)
+energy_of_sample = np.zeros(n_loops)
 
 for i in range(n_loops):
 	#Choose randomly spin to flip
-	x_new = np.random.randint(0,N)
-	S_new = np.copy(S)
-	S_new[x_new] = -S_new[x_new]
+	spin_to_flip = np.random.randint(0,n_spins)
+	new_sample = np.copy(sample)
+	new_sample[spin_to_flip] = -new_sample[spin_to_flip]
 
 	#Compute test
-	R = P_Boltzman(S_new, x_new)/P_Boltzman(S, x_new)
+	R = np.exp(-(energy(new_sample) - energy(sample))/temperature)
 
 	eta = np.random.uniform()
 
 	if R > eta:
-		S = np.copy(S_new)
+		sample = np.copy(new_sample)
 
 	
-	#Computing the enrgy of the system
-	for k in range(N):
-		if k != N-1:
-			Energy[i] -= S[k]*S[k+1]
-		else :
-			Energy[i] -= S[k]*S[0]
+	#Computing the energy of the sample
+	energy_of_sample[i] = energy(sample)
 
 
-#	if i==0 or i==n_loops-1:
-#		print(f'S={S} and E = {Energy[i]}')
+###############################################
+# Graphics
+E_moy = np.sum(energy_of_sample)/n_loops
 
-#E_moy = np.sum(Energy)/n_loops
-
-'''
-plt.plot(Energy, 'o')
-plt.title(f"N_particles = {N}, N_loops = {n_loops}, E_mean = {E_moy}")
+plt.figure()
+plt.plot(energy_of_sample, 'o')
+plt.plot(warm_up_iteration, energy_of_sample[warm_up_iteration], 'rx')
+plt.title(f"{n_spins} spins, {n_loops} loops, Mean energy = {E_moy}")
 plt.xlabel('Iteration')
 plt.ylabel("Energy")
-plt.show();
-'''
 
-plt.hist(Energy, bins='auto')
+
+
+k = (energy_of_sample+n_spins)/2.0
+DOS = 2*scipy.special.comb(n_spins, k)*np.exp(-energy_of_sample/temperature)/partition_function(n_spins, temperature)
+plt.figure()
+plt.hist(energy_of_sample[warm_up_iteration:], bins='auto')
+plt.plot(energy_of_sample, n_loops*DOS, 'r-o')
+plt.title(f"{n_spins} spins, {n_loops} loops")
 plt.ylabel('Occurences')
-plt.show();
+plt.show()
