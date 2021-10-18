@@ -4,10 +4,12 @@ Simulate a chain of N spins s=+/-1 using MCMC with Metropolis-Hasting Algorithm
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.special
+from numba import jit
 
 ###############################################
-# Functions
+# Functions 
 
+@jit(nopython=True)
 def energy(sample):
 	'''
 	Computes the energy based on Ising model E = - sum_nearest_neighboors S_i*S_j
@@ -20,6 +22,7 @@ def energy(sample):
 		energy -= sample[i]*sample[i+1]
 	return energy-sample[0]*sample[-1]
 
+@jit(nopython=True)
 def boltzmannn_unnormalized(sample, temperature):
 	'''
 	Computes the unnormalized Boltzmann probability of the sample
@@ -31,6 +34,7 @@ def boltzmannn_unnormalized(sample, temperature):
 	'''
 	return np.exp(-energy(sample)/temperature)
 
+@jit(nopython=True)
 def partition_function(sample_size, temperature):
 	'''
 	Computes the partition function of the Boltzmann probability 
@@ -55,16 +59,29 @@ def boltzmannn(sample, temperature):
 
 	return boltzmannn_unnormalized(sample, temperature)/partition_function(sample.size, temperature)
 
+@jit(nopython=True)
+def log_boltzmann_unnormalized(sample, temperature):
+	'''
+	Computes the natural logarithm of the Boltzmann probability
+
+	sample (1D array): spins of the system
+	temperature (scalar): temperature of the system (in [eV], i.e. times the boltzmannn constant)
+
+	Return : log of Boltzmann probability
+	'''
+	return -energy(sample)/temperature
+
+
 ###############################################
 # Parameters
 #Number of particles
-n_spins = 500
+n_spins = 150
 
 #Temperature
-temperature = 1.0 #[eV]
+temperature = 1e0 #[eV]
 
 #Warm up
-warm_up_iteration = 1500
+warm_up_iteration = 5000
 
 #Number of loops to execute
 n_loops = 50000
@@ -84,8 +101,9 @@ for i in range(n_loops):
 	new_sample = np.copy(sample)
 	new_sample[spin_to_flip] = -new_sample[spin_to_flip]
 
-	#Compute test
-	R = np.exp(-(energy(new_sample) - energy(sample))/temperature)
+	#Compute test (with unnormalized probability bc. of division btw both)
+	R = np.exp( log_boltzmann_unnormalized(new_sample, temperature) - log_boltzmann_unnormalized(sample, temperature) )
+
 
 	eta = np.random.uniform()
 
@@ -99,22 +117,30 @@ for i in range(n_loops):
 
 ###############################################
 # Graphics
-E_moy = np.sum(energy_of_sample)/n_loops
+E_mean = np.sum(energy_of_sample)/n_loops
 
 plt.figure()
 plt.plot(energy_of_sample, 'o')
-plt.plot(warm_up_iteration, energy_of_sample[warm_up_iteration], 'rx')
-plt.title(f"{n_spins} spins, {n_loops} loops, Mean energy = {E_moy}")
+plt.axvline(x=warm_up_iteration, color='r')
 plt.xlabel('Iteration')
 plt.ylabel("Energy")
+plt.title(f"{n_spins} spins, {n_loops} loops, Mean energy = {E_mean}, k_B * T = {temperature}")
 
 
+#Compute density of states
+k = np.arange(0,n_spins,2)  #number of unparallel pairs
+E_theoretical = 2*k-n_spins #energies
+DOS = 2*scipy.special.comb(n_spins, k)*np.exp(-E_theoretical/temperature)/partition_function(n_spins, temperature)
 
-k = (energy_of_sample+n_spins)/2.0
-DOS = 2*scipy.special.comb(n_spins, k)*np.exp(-energy_of_sample/temperature)/partition_function(n_spins, temperature)
+
 plt.figure()
 plt.hist(energy_of_sample[warm_up_iteration:], bins='auto')
-plt.plot(energy_of_sample, n_loops*DOS, 'r-o')
-plt.title(f"{n_spins} spins, {n_loops} loops")
+plt.plot(E_theoretical, (n_loops-warm_up_iteration)*DOS, 'r-o')
+plt.xlabel('Energy')
 plt.ylabel('Occurences')
-plt.show()
+plt.title(f"{n_spins} spins, {n_loops} loops, k_B * T = {temperature}")
+plt.show();
+
+
+#pytorch to compute graddients w.r.t. parameter
+
