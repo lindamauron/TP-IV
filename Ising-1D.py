@@ -45,8 +45,9 @@ def partition_function(sample_size, temperature):
 
 	Return : partition function (scalar)
 	'''
-	return np.power(2*np.cosh(1/temperature), sample_size) + np.power(2*np.sinh(1/temperature), sample_size)
+	return sum( 2*scipy.special.comb(sample_size, k)*np.exp(- (2*k-sample_size)/temperature) )
 
+	
 def boltzmannn(sample, temperature):
 	'''
 	Computes the Boltzmann probability of the state of the sample
