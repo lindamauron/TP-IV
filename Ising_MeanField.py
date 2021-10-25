@@ -1,11 +1,11 @@
 '''
-Simulate a chain of N spins s=+/-1 using MCMC with Metropolis-Hasting Algorithm
+Simulate a chain of N spins s=+/-1 using Variational mean field model and MCMC with Metropolis-Hasting Algorithm
 '''
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.special
 from numba import jit
-from itertools import product
+
 ###############################################
 # Functions 
 
@@ -212,9 +212,9 @@ def MCMC(sample, parameters, h, J, temperature, n_loops=1000):
 		new_sample[spin_to_flip] = -new_sample[spin_to_flip]
 
 		#Compute test (with unnormalized probability bc. of division btw both)
-		R = np.exp( log_boltzmann_unnormalized(new_sample, h, J, temperature) 
-			- log_boltzmann_unnormalized(sample, h, J, temperature) )
-		
+		R = np.exp( trivial_unnormalized_log_probability(new_sample, parameters, temperature) 
+			- trivial_unnormalized_log_probability(sample, parameters, temperature) )
+
 		eta = np.random.uniform()
 
 		if R > eta:
@@ -224,9 +224,9 @@ def MCMC(sample, parameters, h, J, temperature, n_loops=1000):
 		energy_of_sample[i] = trivial_energy(sample, parameters)
 	
 	plt.figure()
-	plt.plot(energy_of_sample, 'o')
-	plt.xlabel('Iteration')
-	plt.ylabel("Energy")
+	plt.hist(energy_of_sample, bins='auto')
+	plt.xlabel('Energy')
+	plt.ylabel("Occurences")
 	#plt.title(f"{n_spins} spins, {n_loops} loops, Mean energy = {E_mean}, k_B * T = {temperature}")
 	
 
@@ -236,10 +236,10 @@ def MCMC(sample, parameters, h, J, temperature, n_loops=1000):
 ######### ######################################
 # Parameters
 #Number of particles
-n_spins = 10
+n_spins = 20
 
 #Temperature
-temperature = 1e0 #[eV]
+temperature = 1e2 #[eV]
 
 #Warm up
 warm_up_iteration = 5000
@@ -252,9 +252,9 @@ n_variational_loops = 10
 J = create_J(n_spins, 'nearest_neighboors')
 h = create_h(n_spins, 'peak', position=(1,3,5,7,9))
 
-print(J)
-print('On fait des tests')
-print(h)
+#print(J)
+#print('On fait des tests')
+#print(h)
 ###############################################
 # Variational computation w.r.t. parametesr {b_i}
 
@@ -273,13 +273,13 @@ for i in range(n_variational_loops):
 		sample = MCMC(sample, parameters[i,:], h, J, temperature, warm_up_iteration)
 
 	# do MCMC with given parameters for the probability
-	sample = MCMC(sample, parameters[i,:], h, J, temperature)
+	sample = MCMC(sample, parameters[i,:], h, J, temperature, n_loops=5000)
 
 	# Change paramters according to grad F = 0
 	parameters[i+1,:] = [new_parameter(temperature, parameters[i,:], h, J, k) for k in range(n_spins) ]
 
 
-	#print(f'loop {i} b is {parameters[i,:]}')
+print(f'b is {parameters[-1,:]}')
 ###############################################
 
 plt.figure()
