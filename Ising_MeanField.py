@@ -9,7 +9,7 @@ from numba import jit
 ###############################################
 # Functions 
 
-@jit(nopython=True)
+#@jit(nopython=True)
 def create_J(size, type_of_J='nearest_neighboors'):
 	'''
 	Creates the interaction matrix J for the 1D chain
@@ -36,7 +36,6 @@ def create_J(size, type_of_J='nearest_neighboors'):
 	return J
 
 
-@jit(nopython=True)
 def create_h(size, type_of_h='homogeneous', position=None):
 	'''
 	Creates the magnetic field vector h
@@ -59,40 +58,10 @@ def create_h(size, type_of_h='homogeneous', position=None):
 
 	return h
 
-@jit(nopython=True)
-def standard_energy(sample, h, J):
-	'''
-	Computes the energy based on Ising model E = - sum_nearest_neighboors S_i*S_j + h sum S_i
-	Input:
-	sample (1D array): spins of the sample 
-	h (1D array): magnetic field
-	J (2D array): interaction matrix
 
-	Return : total energy (scalar)
-	'''
-	energy = 0
-	for i in range(sample.size-1) : 
-		energy -= J[i, i+1]*sample[i]*sample[i+1]
-	return energy-J[0,-1]*sample[0]*sample[-1] + sum( np.multiply(h,sample) )
-
-@jit(nopython=True)
-def log_boltzmann_unnormalized(sample, h, J, temperature):
-	'''
-	Computes the natural logarithm of the Boltzmann probability
-
-	sample (1D array): spins of the system
-	h (1D array): magnetic field
-	J (2D array): interaction matrix
-	temperature (scalar): temperature of the system (in [eV], i.e. times the boltzmannn constant)
-
-	Return : log of Boltzmann probability
-	'''
-	return -standard_energy(sample, h, J)/temperature
-
-@jit(nopython=True)
 def trivial_energy(sample, parameters):
 	'''
-	Computes the energy based on Ising model E = - sum b_k sigma_k
+	Computes the energy based on Ising model E = - sum b_k s_k
 	Input:
 	sample (1D array): spins {sigma_i} of the sample 
 	parameters (1D array): parameters {b_i} of the system
@@ -101,65 +70,63 @@ def trivial_energy(sample, parameters):
 	'''
 	return -sum(sample*parameters)
 
-def trivial_unnormalized_log_probability(sample, parameters, temperature):
+def trivial_unnormalized_log_probability(sample, parameters, beta):
 	'''
 	Computes the log probability of the unnormalized trivial energy
 	Input:
 	sample (1D array): spins {sigma_i} of the sample 
 	parameters (1D array): parameters {b_i} of the system
-	temperature : k_B * T in eV	
+	beta (scalar): inverse temperature of the system
 	
 	Return : unnormalized logarithm of probability(scalar)
 	'''
-	return -trivial_energy(sample, parameters)/temperature
+	return -beta*trivial_energy(sample, parameters)
 
-@jit(nopython=True)
-def trivial_free_energy(parameters, temperature):
+def trivial_free_energy(parameters, beta):
 	'''
 	Computes the free energy F_tr = sum_spins exp(b E(spins)) 
 	Input : 
 	parameters (1D array): parameters {b_i} of the system
-	temperature : k_B * T in eV
+	beta (scalar): inverse temperature of the system
 
 	Return : free energy of trivial approximation (scalar)
 	'''
 	F = 0
 	for b in parameters:
-		F += np.log( np.cosh(b/temperature) )
+		F += np.log( np.cosh(beta*b) )
 	
-	return -( F + parameters.size*np.log(2) )*temperature
+	return -( F + parameters.size*np.log(2) )/beta
 
 
-@jit(nopython=True)
-def mean_spin(temperature, sample, parameters, index):
+def mean_spin(sample, parameters, beta, index):
 	'''
 	Computes the mean of sigma[index] in the trivial energy
 	Input : 
-	temperature : k_B * T in eV
 	sample (1D array): spins {sigma_i} of the sample 
 	parameters (1D array): parameters {b_i} of the system
+	beta (scalar): inverse temperature of the system
 	index (integer): i
 
 	Return : mean of sigma_index (scalar)
 	'''
-	return np.tanh(parameters[index]/temperature)
+	return np.tanh( beta*parameters[index] )
 
 
-@jit(nopython=True)
-def free_energy(sample, parameters, temperature):
+def free_energy(sample, parameters, beta):
 	'''
 	Computes the free energy of the system
 	Input : 
-	temperature : k_B * T in eV
 	sample (1D array): spins {sigma_i} of the sample 
 	parameters (1D array): parameters {b_i} of the system
+	beta (scalar): inverse temperature of the system
+
 
 	Return : free energy (scalar)
 	'''
-	F = trivial_free_energy(parameters, temperature)
+	F = trivial_free_energy(parameters, beta)
 
 	# Pre-compute the mean spins
-	sigma = [mean_spin(temperature, sample, parameters, i) for i in range(sample.size)]
+	sigma = [mean_spin(sample, parameters, beta, i) for i in range(sample.size)]
 
 	for i in range(sample.size-1):
 		F += (- J[i,i+1]*sigma[i+1] + (h[i]-parameters[i]) ) * sigma[i]
@@ -167,12 +134,11 @@ def free_energy(sample, parameters, temperature):
 	return F+(- J[0,-1]*sigma[0] + (h[-1]-parameters[-1]) ) * sigma[-1]
 
 
-@jit(nopython=True)
-def new_parameter(temperature, parameters, h, J, index):
+def new_parameter(beta, parameters, h, J, index):
 	'''
 	Computes the variational new parameter b[index]
 	Input : 
-	temperature : k_B * T in eV
+	beta (scalar): inverse temperature of the system
 	parameters (1D array): parameters {b_i} of the system
 	h (1D array): magnetic field
 	J (2D array): interaction matrix
@@ -181,13 +147,13 @@ def new_parameter(temperature, parameters, h, J, index):
 	Return : parameter[index] for new step (scalar)
 	'''
 	if index == 0:
-		return h[0] + J[0,-1]*np.tanh(parameters[-1]/temperature) + J[0,1]*np.tanh(parameters[1]/temperature)
+		return h[0] + J[0,-1]*np.tanh(beta*parameters[-1]) + J[0,1]*np.tanh(beta*parameters[1])
 	elif index == parameters.size-1:
-		return h[-1] + J[-1,index-1]*np.tanh(parameters[index-1]/temperature) + J[-1,0]*np.tanh(parameters[0]/temperature)
+		return h[-1] + J[-1,index-1]*np.tanh(beta*parameters[index-1]) + J[-1,0]*np.tanh(beta*parameters[0])
 	else :
-		return h[index] + J[index,index-1]*np.tanh(parameters[index-1]/temperature) + J[index,index+1]*np.tanh(parameters[index+1]/temperature)
+		return h[index] + J[index,index-1]*np.tanh(beta*parameters[index-1]) + J[index,index+1]*np.tanh(beta*parameters[index+1])
 
-def MCMC(sample, parameters, h, J, temperature, n_loops=1000):
+def MCMC(sample, parameters, h, J, beta, n_loops=1000):
 	'''
 	Executes the MCMC algorithm
 	Input :
@@ -195,7 +161,7 @@ def MCMC(sample, parameters, h, J, temperature, n_loops=1000):
 	parameters (1D array): parameters {b_i} of the system
 	h (1D array): magnetic field
 	J (2D array): interaction matrix
-	temperature : k_B * T in eV
+	beta (scalar): inverse temperature of the system
 	n_loops(int) : number of MCMC loops to exxecute
 
 	Return : sample(1D array)
@@ -212,8 +178,8 @@ def MCMC(sample, parameters, h, J, temperature, n_loops=1000):
 		new_sample[spin_to_flip] = -new_sample[spin_to_flip]
 
 		#Compute test (with unnormalized probability bc. of division btw both)
-		R = np.exp( trivial_unnormalized_log_probability(new_sample, parameters, temperature) 
-			- trivial_unnormalized_log_probability(sample, parameters, temperature) )
+		R = np.exp( trivial_unnormalized_log_probability(new_sample, parameters, beta) 
+			- trivial_unnormalized_log_probability(sample, parameters, beta) )
 
 		eta = np.random.uniform()
 
@@ -227,7 +193,7 @@ def MCMC(sample, parameters, h, J, temperature, n_loops=1000):
 	plt.hist(energy_of_sample, bins='auto')
 	plt.xlabel('Energy')
 	plt.ylabel("Occurences")
-	#plt.title(f"{n_spins} spins, {n_loops} loops, Mean energy = {E_mean}, k_B * T = {temperature}")
+	#plt.title(f"{n_spins} spins, {n_loops} loops, Mean energy = {E_mean}, beta = {beta}")
 	
 
 	return sample
@@ -239,7 +205,7 @@ def MCMC(sample, parameters, h, J, temperature, n_loops=1000):
 n_spins = 20
 
 #Temperature
-temperature = 1e2 #[eV]
+beta = 1e-2 #[eV]
 
 #Warm up
 warm_up_iteration = 5000
@@ -250,7 +216,7 @@ warm_up_iteration = 5000
 n_variational_loops = 10
 
 J = create_J(n_spins, 'nearest_neighboors')
-h = create_h(n_spins, 'peak', position=(1,3,5,7,9))
+h = create_h(n_spins, 'zero')
 
 #print(J)
 #print('On fait des tests')
@@ -270,13 +236,13 @@ for i in range(n_variational_loops):
 		parameters[i,:] = np.ones(n_spins)
 
 		#Warm-up iterations
-		sample = MCMC(sample, parameters[i,:], h, J, temperature, warm_up_iteration)
+		sample = MCMC(sample, parameters[i,:], h, J, beta, warm_up_iteration)
 
 	# do MCMC with given parameters for the probability
-	sample = MCMC(sample, parameters[i,:], h, J, temperature, n_loops=5000)
+	sample = MCMC(sample, parameters[i,:], h, J, beta, n_loops=5000)
 
 	# Change paramters according to grad F = 0
-	parameters[i+1,:] = [new_parameter(temperature, parameters[i,:], h, J, k) for k in range(n_spins) ]
+	parameters[i+1,:] = [new_parameter(beta, parameters[i,:], h, J, k) for k in range(n_spins) ]
 
 
 print(f'b is {parameters[-1,:]}')
