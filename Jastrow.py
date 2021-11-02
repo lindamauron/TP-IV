@@ -3,9 +3,9 @@ from numba import jit
 import ExactIsing1D
 
 
-class MeanField:
+class Jastrow:
 	'''
-	Computes the quantities in the Mean Field approximation H = - sum_k b_k s_k
+	Computes the quantities in the Jastrow functions model H = - sum_ si Wij sj
 	'''	
 
 	########################################
@@ -15,7 +15,7 @@ class MeanField:
 		Initialization
 		beta (scalar): inverse temperature of the system
 		n_samples (int): number of samples
-		parameters (1D array): parameters {b_i} of the system
+		parameters (2D array): parameters {W_ij} of the system (upper diagonal)
 		type_of_j (string): type of interaction defined by J
 						'zero' : J=0
 						'nearest_neighboors' : J!=0 if two neighboors (with same intensity)
@@ -25,53 +25,8 @@ class MeanField:
 		'''
 		self.beta = beta
 		self.n_samples = n_samples
-		self.parameters = np.ones(n_samples)
-		self.J = self.create_J(type_of_J)
-		self.h = self.create_h(type_of_h)
-
+		self.parameters = np.triu( np.ones( (n_samples, n_samples) ), k=1)
 		self.exact_model = ExactIsing1D.ExactIsing1D(beta, n_samples, type_of_J, type_of_h)
-
-	def create_J(self, type_of_J):
-		'''
-		Creates the interaction matrix J for the 1D chain
-		type_of_j (string): type of interaction defined by J
-							'zero' : J=0
-							'nearest_neighboors' : J!=0 if two neighboors (with same intensity)
-
-		Return : J(2D matrix) : interaction matrix
-		'''
-		J = np.zeros( (self.n_samples, self.n_samples) )
-
-		if type_of_J=='zero':
-			return J
-		elif type_of_J == 'nearest_neighboors':
-			for i in range(1,self.n_samples-1):
-				J[i, i-1] = 1
-				J[i, i+1] = 1
-			J[0, -1] = 1
-			J[0, 1] = 1
-			J[-1, 0] = 1
-			J[-1, -2] = 1
-
-		return J
-
-	def create_h(self, type_of_h):
-		'''
-		Creates the magnetic field vector h
-		size (int): number of spins (gives vector of sizeX1)
-		type_of_h (string): type of magnetic field defined by h
-							'zero' : h=0
-							'homogeneous' : h=1
-							'peak' : h[position] = 10, otherwise h=1
-
-		Return : J(2D matrix) : interaction matrix
-		'''
-		if type_of_h=='homogeneous':
-			return np.ones(self.n_samples)
-		elif type_of_h=='zero':
-			return np.zeros(self.n_samples)
-
-		return h
 
 	def print_infos(self):
 		'''
@@ -79,7 +34,8 @@ class MeanField:
 		'''
 		print(f'Inverse temperature of the system : {self.beta}')
 		print(f'The actual parameters are {self.parameters}')
-		print(f'The field is {self.h} and the interactions \n {self.J}')
+		print(f'The exact model is :')
+		self.exact_model.print_infos()
 		print('-----------------------------------------')
 
 
@@ -89,18 +45,22 @@ class MeanField:
 		'''
 		Computes the energy of the system
 		Input:
-		sample (1D array): spins {sigma_i} of the sample 
+		sample (1D array): spins {s_i} of the sample 
 
 		Return : total energy (scalar)
 		'''
-		return -sum( np.multiply(sample,self.parameters) )
-
+		E = 0
+		for i in range(self.n_samples):
+			for j in range(self.n_samples):
+				if i<j:
+					E += sample[i]*self.parameters[i,j]*sample[j]
+		return E
 
 	def unnormalized_log_probability(self, sample):
 		'''
 		Computes the log Boltzmann probability of the unnormalized energy
 		Input:
-		sample (1D array): spins {sigma_i} of the sample 
+		sample (1D array): spins {s_i} of the sample 
 		
 		Return : unnormalized logarithm of probability(scalar)
 		'''
@@ -113,17 +73,22 @@ class MeanField:
 
 		Return : partition function (scalar)
 		'''
-		Z = 2**self.n_samples
-		for b in self.parameters:
-			Z *= np.cosh(self.beta*b)
+		a = 1
+		b = 1
+		for i in range(self.n_samples):
+			for j in range(self.n_samples):
+				if i<j:
+					a *= np.cosh(-self.beta*self.parameters[i,j])
+					b *= np.sinh(-self.beta*self.parameters[i,j])
 
+		Z = 2**self.n_samples*(a+b)
 		return Z
 
 	def log_probability(self, sample):
 		'''
 		Computes the log proabability of the sample
 		Input :
-		sample (1D array): spins {sigma_i} of the sample 
+		sample (1D array): spins {s_i} of the sample 
 
 		Return : log probability (scalar)
 		'''
@@ -133,7 +98,7 @@ class MeanField:
 		''' 
 		Computes the local free energy F_loc
 		Input :
-		sample (1D array): spins {sigma_i} of the sample 
+		sample (1D array): spins {s_i} of the sample 
 
 		Return : F_loc (scalar)
 		'''
@@ -148,11 +113,26 @@ class MeanField:
 		Input :
 		sample (1D array): spins {s_i} of the sample 
 
-		Return : gradient (1D array)
+		Return : gradient (2D array upper-diagonal)
 		'''
-		grad = np.zeros(self.n_samples)
+		grad = np.zeros( (self.n_samples, self.n_samples) )
+		a = 1
+		b = 1
+
+		# Compute denominator
+		for i in range(self.n_samples):
+			for j in range(self.n_samples):
+				if i < j:
+					a *= np.cosh(-self.beta*self.parameters[i,j])
+					b *= np.sinh(-self.beta*self.parameters[i,j])
+
+		# Gradient for W_kl
 		for k in range(self.n_samples):
-			grad[k] = - np.tanh(self.beta*self.parameters[k]) + sample[k]
+			for l in range(self.n_samples):
+				if k < l:
+					grad[k,l] = a*np.sinh(-self.beta*self.parameters[k,l])/np.cosh(-self.beta*self.parameters[k,l]) + b*np.cosh(-self.beta*self.parameters[k,l])/np.sinh(-self.beta*self.parameters[k,l])
+					grad[k,l] /= a+b
+					grad[k,l] -= sample[k]*sample[l]
 
 		return self.beta*grad
 
@@ -162,7 +142,7 @@ class MeanField:
 		Input:
 		list_of_samples (2D array): all the samples on which to average
 
-		Return : gradient (1D array)
+		Return : gradient (2D array) (upper-diagonal)
 		'''
 		# Number of samples
 		ns = list_of_samples[:,0].size

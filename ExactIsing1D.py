@@ -29,7 +29,7 @@ class ExactIsing1D:
 		self.h = self.create_h(type_of_h)
 		self.partition = None
 
-	#@jit(nopython=True)
+
 	def create_J(self, type_of_J):
 		'''
 		Creates the interaction matrix J for the 1D chain
@@ -126,7 +126,7 @@ class ExactIsing1D:
 		
 		return self.partition
 
-	def boltzmannn(self, sample):
+	def probability(self, sample):
 		'''
 		Computes the Boltzmann probability of the state of the sample
 		Input:
@@ -180,3 +180,4 @@ class ExactIsing1D:
 		l2_l1 = 2*np.sinh(2*self.beta*J)/l1**2
 
 		return -self.n_samples*np.log(l1)/self.beta - np.log( 1+l2_l1**self.n_samples)/self.beta
+		#return - np.log(l1**self.n_samples + l2**self.n_samples)/self.beta
