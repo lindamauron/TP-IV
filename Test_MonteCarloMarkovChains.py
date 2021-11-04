@@ -1,68 +1,92 @@
-'''
-Simulate a chain of N spins s=+/-1 using MCMC with Metropolis-Hasting Algorithm
-'''
 import numpy as np
 import matplotlib.pyplot as plt
-from numba import jit
-import ExactIsing1D
 import MCMC
-###############################################
-# Functions 
+import Jastrow as JS
+import MeanField as MF
 
-
+from scipy.optimize import fsolve
 ###############################################
 # Parameters
 #Number of particles
 n_spins = 100
 
-#Inverse emperature
-beta = 1e-2 #[1/eV]
+#Temperature
+beta = 1e0 #[eV]
 
-#Warm up
-warm_up_iteration = 5000
 
-#Number of loops to execute
-n_loops = 50000
+model = MF.MeanField(beta, n_samples=n_spins)
 
-model = ExactIsing1D.ExactIsing1D(beta, n_spins, type_of_h='zero')
-engine = MCMC.MCMC(model)
 
+J=1
+h=1
+fct = lambda b_ana : b_ana - h - 2*J*np.tanh(beta*b_ana)
+b_sol = fsolve(fct, 2.9)
+model.parameters = b_sol*np.ones(n_spins)
+
+
+engine = MCMC.MCMC(model, warm_up_iterations=5000)
 engine.print_infos()
-
 ###############################################
 
 #Creating vector of spins, randomly +1 or -1
 sample = np.random.choice([-1.0, 1.0], model.n_samples)
-#print(f'{sample}, {energy(sample)}')
 
 # Warm up
-sample, _ = engine.run(sample, flag_warm_up=True)
+samples_memory = engine.run(sample, flag_warm_up=True)
+sample = samples_memory[-1,:]
 
 # MCMC loop
-sample, energy_of_sample = engine.run(sample, iterations=n_loops)
+#samples = engine.run(sample)
 
 
 print('Loops done')
 ###############################################
+# Treating data
+
+
+energy_of_sample = np.zeros(samples_memory[:,0].size)
+f_loc = np.zeros(samples_memory[:,0].size)
+for k in range(energy_of_sample.size):
+	energy_of_sample[k] = model.energy(samples_memory[k,:])
+	f_loc[k] = model.local_free_energy(samples_memory[k,:])
+
+
+
+
+E_mean = np.sum(energy_of_sample)/5000
+
+F_ising = model.exact_model.free_energy()
+###############################################
 # Graphics
-E_mean = np.sum(energy_of_sample)/n_loops
+
+
 
 plt.figure()
 plt.plot(range(energy_of_sample.size), energy_of_sample, 'o')
 plt.xlabel('Iteration')
 plt.ylabel("Energy")
-plt.title(f"{n_spins} spins, {n_loops} loops, Mean energy = {E_mean}, beta = {beta}")
+plt.title(f"{n_spins} spins, {5000} loops, Mean energy = {E_mean}, beta = {beta}")
 
 
 #Compute density of states
-E_theoretical, DOS = model.DOS()
+#E_theoretical, DOS = model.DOS()
 
 plt.figure()
 plt.hist(energy_of_sample, bins='auto')
-plt.plot(E_theoretical, n_loops*DOS, 'r-o')
+#plt.plot(E_theoretical, n_loops*DOS, 'r-o')
 plt.xlabel('Energy')
 plt.ylabel('Occurences')
-plt.title(f"{n_spins} spins, {n_loops} loops, beta = {beta}")
+plt.title(f"{n_spins} spins, {5000} loops, beta = {beta}")
+
+
+plt.figure()
+plt.plot(f_loc)
+plt.axhline(y=F_ising, color='g', ls=':', label=r'$\mathcal{F}(\{ b_0 \})$')
+plt.ylabel(r'$\mathcal{F}$')
+plt.xlabel('Step')
+plt.title(f"{n_spins} spins, {5000} loops, beta = {beta}")
+
+
 plt.show();
 
 

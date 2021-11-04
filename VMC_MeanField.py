@@ -13,17 +13,20 @@ n_spins = 25
 
 #Temperature
 beta = 1e0 #[eV]
+ 
+burning_period = 500
 
-n_variational_loops = 20000
+n_variational_loops = 1000
 
 learning_rate = 1e-1
+
+number_MCMC = 10
+MCMC_iterations=1000
 size_of_mean = 500
 
-
 model = MF.MeanField(beta, n_samples=n_spins)
-exact_model = ExactIsing1D.ExactIsing1D(beta, n_samples=n_spins)
 
-engine = MCMC.MCMC(model, warm_up_iterations=5000)
+engine = MCMC.MCMC(model)
 engine.print_infos()
 
 
@@ -38,6 +41,7 @@ parameters_memory = np.zeros( (n_variational_loops, model.n_samples) )
 # Variational computation w.r.t. parameters {b_i}
 
 for i in range(n_variational_loops):
+	list_of_samples = []
 	print(i)
 	if i == 0:
 		#Creating vector of spins, randomly +1 or -1
@@ -58,7 +62,7 @@ for i in range(n_variational_loops):
 
 
 	# do MCMC with given parameters for the probability
-	list_of_samples = engine.run(sample)
+	samples_memory = engine.run(sample)
 	sample = samples_memory[-1,:]
 
 	F_loc[i+1] = model.local_free_energy(sample)
@@ -66,15 +70,22 @@ for i in range(n_variational_loops):
 	ns = np.random.choice(range(1000), size=size_of_mean, replace=False)
 	for k in ns:
 		F_lamb[i+1] += model.local_free_energy(samples_memory[k,:])
-		np.append(list_of_samples, samples_memory[k,:])
-	F_lamb[i+1] /= ns.size
+		list_of_samples.append(samples_memory[k,:])
+
+	F_lamb[i+1] /= len(ns)
+	list_of_samples = np.array(list_of_samples)
 
 	# Change parameters descending the gradient
+	#print(list_of_samples.shape)
 	grad = model.gradient(list_of_samples) 
 
+
+
+
+
 	# Check that gradient in non-zero
-	if np.linalg.norm(grad) < 1e-30:
-		break
+	#if np.linalg.norm(grad) < 1e-30:
+	#	break
 
 	# Update with new parametres
 	model.parameters = model.parameters-learning_rate*grad
@@ -90,12 +101,12 @@ J=1
 h=1
 fct = lambda b_ana : b_ana - h - 2*J*np.tanh(beta*b_ana)
 b_sol = fsolve(fct, 2.9)
-F_lamb_exact = -model.n_samples*( np.log( 2*np.cosh(model.beta*b_sol)) )/model.beta
+F_lamb_exact = -model.n_samples*np.log( 2*np.cosh(model.beta*b_sol) )/model.beta
 
-F_ising = exact_model.free_energy()
+F_ising = model.exact_model.free_energy()
 
 
-# Evolutiono of the parameters
+# Evolution of the parameters
 plt.figure()
 plt.plot(range(n_variational_loops), parameters_memory)
 plt.axhline(y=b_sol, color='k', ls=':', label=r'Theoretical solution $b_0$')
@@ -107,7 +118,7 @@ plt.title(f'Variational with lr = {learning_rate}, beta = {beta} and {n_spins} s
 
 
 plt.figure()
-plt.plot(range(n_variational_loops+1), F_loc, 'b', ls=':', label = r'$\mathcal{F}_{loc}(\{ b_i \})$')
+#plt.plot(range(n_variational_loops+1), F_loc, 'b', ls=':', label = r'$\mathcal{F}_{loc}(\{ b_i \})$')
 plt.plot(range(n_variational_loops+1), F_lamb, 'b', label = r'$\mathcal{F}_{\lambda}(\{ b_i \})$')
 plt.axhline(y=F_lamb_exact, color='r', ls=':', label=r'$\mathcal{F}_{\lambda}(\{ b_0 \})$')
 plt.axhline(y=F_ising, color='g', ls=':', label=r'$\mathcal{F}(\{ b_0 \})$')

@@ -180,4 +180,3 @@ class ExactIsing1D:
 		l2_l1 = 2*np.sinh(2*self.beta*J)/l1**2
 
 		return -self.n_samples*np.log(l1)/self.beta - np.log( 1+l2_l1**self.n_samples)/self.beta
-		#return - np.log(l1**self.n_samples + l2**self.n_samples)/self.beta
