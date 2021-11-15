@@ -1,11 +1,11 @@
 import numpy as np
 from numba import jit
 import ExactIsing1D
-
+import itertools
 
 class Jastrow:
 	'''
-	Computes the quantities in the Jastrow functions model H = - sum_ si Wij sj
+	Computes the quantities in the Jastrow functions model H = - sum si Wij sj
 	'''	
 
 	########################################
@@ -25,8 +25,11 @@ class Jastrow:
 		'''
 		self.beta = beta
 		self.n_samples = n_samples
-		self.parameters = np.triu( np.ones( (n_samples, n_samples) ), k=1)
+		self.parameters = -np.triu( np.ones( (n_samples, n_samples) ), k=1)
 		self.exact_model = ExactIsing1D.ExactIsing1D(beta, n_samples, type_of_J, type_of_h)
+
+		#self.partition = 0
+		#self.flag_new_parameters = True
 
 	def print_infos(self):
 		'''
@@ -73,6 +76,7 @@ class Jastrow:
 
 		Return : partition function (scalar)
 		'''
+		
 		a = 1
 		b = 1
 		for i in range(self.n_samples):
@@ -83,6 +87,15 @@ class Jastrow:
 
 		Z = 2**self.n_samples*(a+b)
 		return Z
+		'''
+		s_tuples = np.array(list(k for k in itertools.product( [1.0, -1.0], repeat=self.n_samples)))
+		Z = 0
+		for s in s_tuples:
+			Z += np.exp(-self.beta*self.energy(s))
+
+		return Z
+		'''
+
 
 	def log_probability(self, sample):
 		'''
@@ -115,6 +128,7 @@ class Jastrow:
 
 		Return : gradient (2D array upper-diagonal)
 		'''
+		
 		grad = np.zeros( (self.n_samples, self.n_samples) )
 		a = 1
 		b = 1
@@ -130,11 +144,29 @@ class Jastrow:
 		for k in range(self.n_samples):
 			for l in range(self.n_samples):
 				if k < l:
+					# WHAT IF 0 ?
 					grad[k,l] = a*np.sinh(-self.beta*self.parameters[k,l])/np.cosh(-self.beta*self.parameters[k,l]) + b*np.cosh(-self.beta*self.parameters[k,l])/np.sinh(-self.beta*self.parameters[k,l])
-					grad[k,l] /= a+b
+					grad[k,l] /= (a+b)
 					grad[k,l] -= sample[k]*sample[l]
 
-		return self.beta*grad
+		return grad
+		'''
+		df_dx = np.zeros( (self.n_samples, self.n_samples) )
+		x0 = 1e-4
+		f = self.local_free_energy(sample)
+		for k in range(self.n_samples):
+			for l in range(self.n_samples):
+				if k<l:
+					self.parameters[k,l] = self.parameters[k,l] + x0
+
+					f_plus = self.local_free_energy(sample)
+
+					df_dx[k,l] = (f_plus - f)/x0
+
+					self.parameters[k,l] = self.parameters[k,l] - x0
+		return df_dx
+		'''
+
 
 	def gradient(self, list_of_samples):
 		'''
