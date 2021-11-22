@@ -16,11 +16,11 @@ beta = 1e0 #[eV]
  
 burning_period = 1000
 
-n_variational_loops = 10000
+n_variational_loops = 2000
 
-learning_rate = 1e-3
+learning_rate = 1e-1
 
-number_MCMC = 1
+number_MCMC = 5
 MCMC_iterations=5000
 size_of_mean = 1000
 

@@ -8,7 +8,7 @@ from scipy.optimize import fsolve
 ###############################################
 # Parameters
 #Number of particles
-n_spins = 25
+n_spins = 10
 
 #Temperature
 beta = 1e0 #[eV]
@@ -23,16 +23,16 @@ b_sol = fsolve(fct, 2.9)
 model.parameters = b_sol*np.ones(n_spins)
 '''
 
-engine = MCMC.MCMC(model, iterations=5000)
+engine = MCMC.MCMC(model, iterations=1000)
 engine.print_infos()
 ###############################################
 
 #Creating vector of spins, randomly +1 or -1
-sample = np.random.choice([-1.0, 1.0], model.n_samples)
+#sample = np.random.choice([-1.0, 1.0], model.n_samples)
 
 # Warm up
 samples_memory = engine.run( )
-sample = samples_memory[-1,:]
+#sample = samples_memory[-1,:]
 
 # MCMC loop
 #samples = engine.run(sample)

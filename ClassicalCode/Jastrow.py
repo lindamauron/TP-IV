@@ -25,7 +25,7 @@ class Jastrow:
 		'''
 		self.beta = beta
 		self.n_samples = n_samples
-		self.parameters = -np.triu( np.ones( (n_samples, n_samples) ), k=1)
+		self.parameters = np.triu( np.ones( (n_samples, n_samples) ), k=1)
 		self.exact_model = ExactIsing1D.ExactIsing1D(beta, n_samples, type_of_J, type_of_h)
 
 		#self.partition = 0
@@ -76,7 +76,7 @@ class Jastrow:
 
 		Return : partition function (scalar)
 		'''
-		
+		'''
 		a = 1
 		b = 1
 		for i in range(self.n_samples):
@@ -94,7 +94,7 @@ class Jastrow:
 			Z += np.exp(-self.beta*self.energy(s))
 
 		return Z
-		'''
+		
 
 
 	def log_probability(self, sample):
@@ -128,7 +128,7 @@ class Jastrow:
 
 		Return : gradient (2D array upper-diagonal)
 		'''
-		
+		'''
 		grad = np.zeros( (self.n_samples, self.n_samples) )
 		a = 1
 		b = 1
@@ -164,8 +164,8 @@ class Jastrow:
 					df_dx[k,l] = (f_plus - f)/x0
 
 					self.parameters[k,l] = self.parameters[k,l] - x0
-		return df_dx
-		'''
+		return -df_dx/f
+		
 
 
 	def gradient(self, list_of_samples):

@@ -41,8 +41,11 @@ for i in range(n_variational_loops):
 	list_of_samples = []
 	print(i)
 
-	# do MCMC with given parameters for the probability
-	samples_memory = engine.run()
+	if i ==0:
+		# do MCMC with given parameters for the probability
+		samples_memory = engine.run()
+	else:
+		samples_memory = engine.run( samples_memory[-1,:] )
 
 
 	ns = np.random.choice(range(burning_period,MCMC_iterations), size=size_of_mean, replace=False)

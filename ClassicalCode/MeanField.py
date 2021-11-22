@@ -35,7 +35,6 @@ class MeanField:
 		'''
 		print(f'Inverse temperature of the system : {self.beta}')
 		print(f'The actual parameters are {self.parameters}')
-		print(f'The field is : ')
 		self.exact_model.print_infos()
 		print('-----------------------------------------')
 
