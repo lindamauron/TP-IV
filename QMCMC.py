@@ -14,8 +14,9 @@ class MCMC:
 
 
 	def print_infos(self):
-		print(f'The model is : {model.name}')
-		print(f'The number of iterations is {self.iterations}')
+		self.hamiltonian.print_infos()
+		print(f'The model is : {self.model.name}')
+		print(f'The number of Monte-Carlo iterations is {self.iterations}')
 		print('-----------------------------------------')
 
 
@@ -41,12 +42,15 @@ class MCMC:
 
 			#Compute test (with unnormalized probability bc. of division btw both)
 			R = np.exp( self.model.log_prob(new_sample) - self.model.log_prob(sample) )
+			#print(R)
 
 			eta = np.random.uniform()
 
 			if R > eta:
 				sample = np.copy(new_sample)
-	
+				#print('new')
+
+
 			# Save the sample
 			list_of_samples[i] = sample
 			E_loc[i] = self.model.local_energy(self.hamiltonian, sample)

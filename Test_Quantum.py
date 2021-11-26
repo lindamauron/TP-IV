@@ -5,68 +5,69 @@ import DiscreteOperator
 import QMCMC
 
 
-L = 5
+L = 50
 beta = 1e-2
 
 burning_period = 100
 
-n_variational_loops = 1000
+n_variational_loops = 5000
 learning_rate = 1e-1
 
 model = Models.MeanField(L)
-H = DiscreteOperator.IsingTransverse(beta, L, model)
+H = DiscreteOperator.IsingTransverse(beta, L)
 engine = QMCMC.MCMC(model, H, iterations = 1000)
 
-#sample_list, E_loc = engine.run()
 
-E = np.zeros( (n_variational_loops,1), dtype=complex )
-parameters_memory = np.zeros( (n_variational_loops,L,1), dtype=complex )
+engine.print_infos()
 
 
-for i in range(n_variational_loops):
-	print(i)
+# Testing computation of energy
+s = np.ones( (L,1) )
 
-	if i==0:
-		# do MCMC with given parameters for the probability
-		samples_memory, E_loc = engine.run()
-	else:
-		samples_memory, E_loc = engine.run( samples_memory[-1] )
+'''
+E_, s_prime, n_conns = H.get_H_terms(s)
+print(s_prime)
+# print(E) #first is L*J, then only h
+'''
 
-
-	E[i] = E_loc.mean()
-
-	# Change parameters descending the gradient
-	grad = model.gradient( H, samples_memory[burning_period:] ) 
-
-	# Update with new parametres
-	model.parameters = model.parameters-learning_rate*grad
-	parameters_memory[i] = model.parameters
+v = np.array([0,1,2,3])
+print(f'e^x = {np.exp(v)}')
+print(f'1+e^x = {1+np.exp(v)}')
+print(f'1/(1+e^x) = {1/(1+np.exp(v))}')
+print(f'sum x_i/(1+e^x_i) = {v.T @ (1/(1+np.exp(v)))}')
 
 
 
-np.set_printoptions(precision=3)
-print(f'W is {model.parameters}')
+'''
+# Testing derivative of energy
+#s_list, E_loc = engine.run()
+s = np.random.choice([-1.0, 1.0], (L,1) )
+E = model.local_energy(H,s)
 
-E_mean = E.mean()
+model.parameters += 1e-3
+Ep = model.local_energy(H,s)
+model.parameters -= 1e-3
+
+
+D = 0.5*s.T @ (1/(1+np.exp(model.parameters*s)) )
+der = (model.local_energy(H,s) - E)*D
+
+print(f'Real derivative is {der} and difference = {(Ep-E)*1e3}')
+'''
+
+'''
+# Testing MCMC conditions
+plt.figure()
+plt.plot(E_loc)
+plt.xlabel('iteration')
+plt.ylabel('Energy')
+'''
+
 
 ###################
 
 np.set_printoptions(precision=3)
-#print(f'Energy is {E}')
 
-plt.figure()
-plt.plot(E, 'o')
-plt.xlabel('Iteration')
-plt.ylabel("Energy")
-plt.title(f"MF {L} spins, {5000} loops, Mean energy = {E_mean:.4f}, beta = {beta}")
-
-
-plt.figure()
-plt.plot(np.reshape(parameters_memory,(n_variational_loops,L) ) )
-plt.xlabel('Iteration')
-plt.ylabel('Parameters b_i')
-plt.legend( ['b_0', 'b_1', 'b_2', 'b_3', 'b_4', ])
-plt.title(f'MF with lr = {learning_rate}, beta = {beta} and {L} spins')
 
 
 plt.show();

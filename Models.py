@@ -28,8 +28,6 @@ class Model:
 
 
 
-
-
 class MeanField(Model):
 
 	def __init__(self, length):
@@ -40,36 +38,36 @@ class MeanField(Model):
 		'''
 		self.name = "Mean Field"
 		self.length = length
-		self.parameters = (1+1j)*np.ones( (length,1), dtype=complex)
+		self.parameters = 0 #np.random.normal()
 
 	def log_psi(self, sample):
-		return self.parameters.T@sample
+		return -0.5*np.log1p( np.exp(-self.parameters*sample) ).sum()
 
 	def log_prob(self, sample):
-		return ( self.parameters+np.conj(self.parameters) ).T@sample
+		return -np.log1p( np.exp(-self.parameters*sample) ).sum()
 
-
-	def local_gradient(self, hamiltonian, sample):
-		H, s_prime, n_conns = hamiltonian.get_H_terms(sample)
-
-		grad = np.zeros( (self.length,1), dtype=complex )
-		for i in range(n_conns):
-			s = np.reshape(s_prime[i], (self.length,1) )
-			grad += H[i]*np.exp( self.log_psi(s)-self.log_psi(sample) )*(s - sample)
-
-		return grad
 
 	def gradient(self, hamiltonian, list_of_samples):
-		grad = np.zeros( (self.length,1), dtype=complex )
+		Ns = list_of_samples.shape[0]
+		E_loc = np.zeros( (Ns,1), dtype = complex )
 
-		for i in range(list_of_samples.shape[0]):
-			grad += self.local_gradient(hamiltonian, list_of_samples[i])
+		for i in range(Ns):
+			E_loc[i] = self.local_energy(hamiltonian, list_of_samples[i])
 
-		grad /= list_of_samples.shape[0]
+		E = E_loc.mean()
 
-		return grad
+		G = 0
+		for i in range(Ns):
+			D = 0.5*list_of_samples[i].T @ (1/(np.exp(self.parameters*list_of_samples[i])+1) )
+			G += (E_loc[i] - E)*D/Ns
+
+
+		return 2*np.real(G)
 
 class Jastrow(Model):
+	'''
+	Psi(s) = Prod exp[J1 s_i s_i+1 + J2 s_i s_i+2]
+	'''
 
 	def __init__(self, length):
 		'''
@@ -79,35 +77,31 @@ class Jastrow(Model):
 		'''
 		self.name = "Jastrow"
 		self.length = length
-		self.parameters = (1+1j)*np.triu( np.ones( (length,length), dtype=complex), k=1)
+		self.parameters = np.zeros( (2,1) ) #np.random.normal( size=(2,1) )#np.ones( (2,1) )
 
 
 	def log_psi(self, sample):
-		return sample.T@self.parameters@sample
+		return self.parameters[0]*sample.T@np.roll(sample, -1) + self.parameters[1]*sample.T@np.roll(sample, -2)
 
 	def log_prob(self, sample):
-		return sample.T@( self.parameters+np.conj(self.parameters) )@sample
+		return 2*self.log_psi(sample)
 
-
-	def local_gradient(self, hamiltonian, sample):
-		H, s_prime, n_conns = hamiltonian.get_H_terms(sample)
-
-		grad = np.zeros( (self.length,self.length), dtype=complex )
-
-		for k in range(n_conns):
-			s = np.reshape(s_prime[k], (self.length,1) )
-			for i in range(self.length):
-				for j in range(i+1, self.length):
-					grad[i,j] += H[k]*np.exp( self.log_psi(s)-self.log_psi(sample) )*(sample[i]*sample[j]-s[i]*s[j])
-
-		return grad
 
 	def gradient(self, hamiltonian, list_of_samples):
-		grad = np.zeros( (self.length,self.length), dtype=complex )
+		Ns = list_of_samples.shape[0]
+		E_loc = np.zeros( (Ns,1), dtype = complex )
 
-		for i in range(list_of_samples.shape[0]):
-			grad += self.local_gradient(hamiltonian, list_of_samples[i])
+		for i in range(Ns):
+			E_loc[i] = self.local_energy(hamiltonian, list_of_samples[i])
 
-		grad /= list_of_samples.shape[0]
+		E = E_loc.mean()
 
-		return np.reshape(grad,(self.length,self.length) )
+		G = np.zeros( (2,1,1), dtype=complex )
+
+		for i in range(Ns):
+			D1 = list_of_samples[i].T@np.roll(list_of_samples[i], -1)
+			D2 = list_of_samples[i].T@np.roll(list_of_samples[i], -2)
+
+			G += (E_loc[i] - E)*np.array([D1,D2])/Ns
+
+		return 2*np.real(np.reshape(G, (2,1)))
