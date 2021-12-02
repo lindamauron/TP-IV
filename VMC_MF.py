@@ -12,10 +12,10 @@ beta = 1e-2
 burning_period = 500
 
 n_variational_loops = 50
-learning_rate = 1e-1
+learning_rate = 1e0
 
 model = Models.MeanField(L)
-H = DiscreteOperator.IsingTransverse(beta, L)
+H = DiscreteOperator.IsingTransverse(L)
 engine = QMCMC.MCMC(model, H, iterations = 5000)
 
 
@@ -59,7 +59,7 @@ plt.axhline(y=-25.49098969, label=r'$E_0$')
 plt.xlabel('Iteration')
 plt.ylabel("Energy")
 plt.legend()
-plt.title(f"MF with lr = {learning_rate} and {L} spins, final energy = {E[-1]}")
+plt.title(f"{model.name} with lr = {learning_rate} and {L} spins, final energy = {E[-1]}")
 
 
 #minE = -25.49098969
@@ -68,7 +68,7 @@ plt.plot( parameters_memory )
 plt.xlabel('Iteration')
 plt.ylabel(r'Parameters $\theta$')
 plt.legend()
-plt.title(f'MF with lr = {learning_rate} and {L} spins')
+plt.title(f'{model.name} with lr = {learning_rate} and {L} spins')
 
 
 plt.show();

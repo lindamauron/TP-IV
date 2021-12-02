@@ -25,7 +25,7 @@ class MCMC:
 		'''
 		Executes the MCMC algorithm
 		Input :
-		sample (1D array): initial spins of the sample 
+		sample (1D array): 	initial spins of the sample 
 							if None, random sample
 		Return : list of used samples (2D array)
 		'''

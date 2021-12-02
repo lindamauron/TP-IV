@@ -15,9 +15,22 @@ class Model:
 		raise NotImplementedError
 
 	def log_prob(self, sample):
+		'''
+		Logarithm of the state probability
+		Input : 
+		sample (1D array) : vector basis of spins
+		Return : log( P(s)) (real)		
+		'''
 		raise NotImplementedError
 
 	def local_energy(self, hamiltonian, sample):
+		'''
+		Computes the local energy E_loc(s)
+		Input : 
+		hamiltonian : hamiltonian to compute the energy
+		sample (1D array) : vector basis of spins
+		Return : E_loc(s) = sum_s' <s|H|s'> psi(s')/psi(s)
+		''' 
 		H, s_prime, n_conns = hamiltonian.get_H_terms(sample)
 
 		E = 0
@@ -33,34 +46,53 @@ class MeanField(Model):
 	def __init__(self, length):
 		'''
 		Initialization
-		n_samples (int): number of samples
-		parameters (1D array): parameters {b_i} of the system
+		length (int): number of samples
 		'''
 		self.name = "Mean Field"
 		self.length = length
-		self.parameters = 0 #np.random.normal()
+		self.parameters = 1 #np.random.normal()
 
 	def log_psi(self, sample):
+		'''
+		Logarithm of the wavefunction
+		Input : 
+		sample (1D array) : vector basis of spins
+		Return : log( psi(s)) (complex)
+		'''
 		return -0.5*np.log1p( np.exp(-self.parameters*sample) ).sum()
 
 	def log_prob(self, sample):
+		'''
+		Logarithm of the state probability
+		Input :
+		sample (1D array) : vector basis of spins
+		Return : log( P(s)) (real)		
+		'''
 		return -np.log1p( np.exp(-self.parameters*sample) ).sum()
 
 
 	def gradient(self, hamiltonian, list_of_samples):
+		'''
+		Computes the gradient of the energy w.r.t. the parameters
+		Input : 
+		hamiltonian : hamiltonian to compute the energy
+		list_of_samples (array (Ns,L,1)) : list of states to compute the expectation value
+		Return : Gradient of the energy d<E> / dp_k for all p_k
+		'''
 		Ns = list_of_samples.shape[0]
-		E_loc = np.zeros( (Ns,1), dtype = complex )
 
+		# Pre-computing the enrgies 
+		E_loc = np.zeros( (Ns,1), dtype = complex )
 		for i in range(Ns):
 			E_loc[i] = self.local_energy(hamiltonian, list_of_samples[i])
-
 		E = E_loc.mean()
 
 		G = 0
 		for i in range(Ns):
+			# Derivative of the wave function
 			D = 0.5*list_of_samples[i].T @ (1/(np.exp(self.parameters*list_of_samples[i])+1) )
-			G += (E_loc[i] - E)*D/Ns
 
+			G += (E_loc[i] - E)*D/Ns
 
 		return 2*np.real(G)
 
@@ -73,7 +105,6 @@ class Jastrow(Model):
 		'''
 		Initialization
 		n_samples (int): number of samples
-		parameters (1D array): parameters {b_i} of the system
 		'''
 		self.name = "Jastrow"
 		self.length = length
@@ -81,24 +112,43 @@ class Jastrow(Model):
 
 
 	def log_psi(self, sample):
+		'''
+		Logarithm of the wavefunction
+		Input : 
+		sample (1D array) : vector basis of spins
+		Return : log( psi(s)) (complex)
+		'''
 		return self.parameters[0]*sample.T@np.roll(sample, -1) + self.parameters[1]*sample.T@np.roll(sample, -2)
 
 	def log_prob(self, sample):
+		'''
+		Logarithm of the state probability
+		sample (1D array) : vector basis of spins
+		Return : log( P(s)) (real)		
+		'''
 		return 2*self.log_psi(sample)
 
 
 	def gradient(self, hamiltonian, list_of_samples):
+		'''
+		Computes the gradient of the energy w.r.t. the parameters
+		Input : 
+		hamiltonian : hamiltonian to compute the energy
+		list_of_samples (array (Ns,L,1)) : list of states to compute the expectation value
+		Return : Gradient of the energy d<E> / dp_k for all p_k
+		'''
 		Ns = list_of_samples.shape[0]
-		E_loc = np.zeros( (Ns,1), dtype = complex )
 
+		# Pre-computing the enrgies 
+		E_loc = np.zeros( (Ns,1), dtype = complex )
 		for i in range(Ns):
 			E_loc[i] = self.local_energy(hamiltonian, list_of_samples[i])
-
 		E = E_loc.mean()
 
-		G = np.zeros( (2,1,1), dtype=complex )
 
+		G = np.zeros( (2,1,1), dtype=complex )
 		for i in range(Ns):
+			# Derivative of the wave function
 			D1 = list_of_samples[i].T@np.roll(list_of_samples[i], -1)
 			D2 = list_of_samples[i].T@np.roll(list_of_samples[i], -2)
 
