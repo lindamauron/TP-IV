@@ -1,25 +1,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import MeanField as MF
+import Models
 
 import itertools
 
 # Testing creation of the class
-default_class = MF.MeanField(beta=0.01, n_samples = 10)
+default_class = Models.MeanField(beta=0.01, n_samples = 10)
 #print(f'Default class :')
-#default_class.print_infos()
+default_class.print_infos()
 
 
-no_interaction = MF.MeanField(beta=0.01, n_samples=15, type_of_J = 'zero')
-#no_interaction.print_infos()
+no_interaction = Models.MeanField(beta=0.01, n_samples=15, J = 0)
+no_interaction.print_infos()
 
-no_field = MF.MeanField(beta=0.01, n_samples=10, type_of_h = 'zero')
-#no_field.print_infos()
+no_field = Models.MeanField(beta=0.01, n_samples=10, h = 0)
+no_field.print_infos()
 
 
 # Testing different probabilities
 sample = np.ones(30)
-test = MF.MeanField(beta=1, n_samples=30)
+test = Models.MeanField(beta=1, n_samples=30)
 
 # MF energy = -sum b_k s_k with b_k = 1 by default
 print(f'Mean field energy should be {-30} and is {test.energy(sample)}')
@@ -34,7 +34,7 @@ print('-------------------------------')
 # Testing partition function
 beta = 1e-2
 for n_spins in [3,5,7,10,12,15]:
-	test_partition = MF.MeanField(beta=beta, n_samples=n_spins)
+	test_partition = Models.MeanField(beta=beta, n_samples=n_spins)
 	s_tuples = np.array(list(k for k in itertools.product( [1.0, -1.0], repeat=n_spins)))
 	#print(s_tuples)
 	Z = 0
@@ -45,7 +45,7 @@ for n_spins in [3,5,7,10,12,15]:
 
 
 # Testing gradient
-test_grad = MF.MeanField(beta=10, n_samples=5)
+test_grad = Models.MeanField(beta=10, n_samples=5)
 s = np.random.choice([-1.0, 1.0], test_grad.n_samples)
 #s = np.ones(test_grad.n_samples)
 

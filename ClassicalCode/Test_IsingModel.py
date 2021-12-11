@@ -3,34 +3,22 @@ import matplotlib.pyplot as plt
 import itertools 
 import scipy.special
 
-import ExactIsing1D
+import Models
 
 beta = 1e0
 
 '''
 N = 10
-simple = ExactIsing1D.ExactIsing1D(beta, N, type_of_h='zero')
+simple = Models.ExactIsing1D(beta, N, h=0)
 Z_simple = simple.partition_function
 print(Z_simple)
 '''
 
-
-# Verify exact solution of partitioon function when h=0 (for different sizes)
-N = np.arange(3, 10, 1)
-model_varying_n = np.array([ExactIsing1D.ExactIsing1D(beta, k, type_of_h='zero') for k in N])
-Z_varying_n = np.array([model_varying_n[k].partition_function for k in range(N.size)])
-
-plt.figure()
-plt.plot(N, Z_varying_n)
-plt.plot(N, np.power(2*np.cosh(beta), N) + np.power(2*np.sinh(beta), N))
-plt.xlabel('N')
-plt.ylabel('Partition function')
-plt.title('Varying number of samples')
-
+'''
 
 
 n_spins = 20
-model_test_partition = ExactIsing1D.ExactIsing1D(beta, n_spins, type_of_h='zero')
+model_test_partition = Models.ExactIsing1D(beta, n_spins, h=0)
 Z_to_compare = model_test_partition.partition_function
 
 s_tuples = np.array(list(k for k in itertools.product( [1.0, -1.0], repeat=n_spins)))
@@ -48,7 +36,7 @@ E_varying_beta = np.zeros( (betas.size, 25) )
 density_of_states = np.zeros( (betas.size, 25) )
 
 for k in range(betas.size):
-	model_varying_beta = ExactIsing1D.ExactIsing1D(betas[k], 50) 
+	model_varying_beta = Models.ExactIsing1D(betas[k], 50) 
 	E, DOS = model_varying_beta.DOS()
 
 	E_varying_beta[k,:] = np.array(E)
@@ -60,7 +48,41 @@ plt.xlabel('Energy')
 plt.ylabel('DOS')
 plt.legend( [betas[k] for k in range(betas.size)] , loc='upper right')
 plt.title('Varying beta')
+'''
 
+Z_transf = []
+Z_spins = []
+Z_E = []
+n_array = np.array([3,5,8,10,15,20,25])
+for n in n_array:
+	print(n)
+	test_partition = Models.ExactIsing1D(beta=beta, n_samples=n, h=0)
+	Z_transf.append(test_partition.partition_function)
+
+
+	s_tuples = np.array(list(k for k in itertools.product( [1.0, -1.0], repeat=n)))
+	#print(s_tuples)
+	Z = 0
+	for s in s_tuples:
+		Z += np.exp(-beta*test_partition.energy(s))
+	Z_spins.append(Z)
+
+
+	k = np.arange(0,n,2)
+	Z_E.append( sum( 2*scipy.special.comb(n, k)*np.exp(- beta*(2*k-n) ) ) )
+
+Z_transf = np.array(Z_transf)
+Z_spins = np.array(Z_spins)
+Z_E = np.array(Z_E)
+
+
+plt.figure()
+#plt.plot(n_array, Z_spins, label='Sum over spins')
+plt.plot(n_array, Z_E/Z_spins, label='Sum over energies')
+plt.plot(n_array, Z_transf/Z_spins, label='Transfer matrix')
+plt.xlabel(r'$N$')
+plt.ylabel(r'$Z$')
+plt.legend()
 
 
 

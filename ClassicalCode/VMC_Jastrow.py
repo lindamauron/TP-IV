@@ -1,97 +1,90 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import MCMC
-import Jastrow as JS
-import ExactIsing1D
+import Samplers
+import Models
 
 
 ##########################################################
 # Parameters
 #Number of particles
-n_spins = 5
+n_spins = 25
 
 #Temperature
 beta = 1e0 #[eV]
+ 
 
-n_variational_loops = 1000
+n_variational_loops = 500
 
 learning_rate = 1e-2
 
-
-size_of_mean = 1000
-MCMC_iterations = 5000
+MCMC_iterations=5000
 burning_period = 2000
+ns = MCMC_iterations-burning_period
+n_MCMC = 5
 
-model = JS.Jastrow(beta, n_samples=n_spins)
 
-engine = MCMC.MCMC(model, iterations=MCMC_iterations)
+model = Models.Jastrow(beta, n_samples=n_spins, h=1, J=1)
+engine = Samplers.MCMC(model, iterations=MCMC_iterations)
 engine.print_infos()
 
+print(f'# MCMC is = {MCMC_iterations}, T_therm = {burning_period}, avgg={n_MCMC}, learning_rate={learning_rate}')
 
 ###########################################################
 # Values of interest
 
 F_lamb = np.zeros(n_variational_loops)
-parameters_memory = np.zeros( (n_variational_loops, model.n_samples, model.n_samples) )
+parameters_memory = np.zeros( (n_variational_loops+1, 1) )
+parameters_memory[0] = model.parameters
 
-
-# Variational computation w.r.t. parameters {W_ij}
+# Variational computation w.r.t. parameters W
+print('# Loop, F_lambda, parameters')
 
 for i in range(n_variational_loops):
 	list_of_samples = []
-	print(i)
 
-	if i ==0:
+	for j in range(n_MCMC):
 		# do MCMC with given parameters for the probability
 		samples_memory = engine.run()
-	else:
-		samples_memory = engine.run( samples_memory[-1,:] )
+
+		list_of_samples = samples_memory[burning_period:]
+		for k in range(burning_period, MCMC_iterations):
+			F_lamb[i] += model.local_free_energy(samples_memory[k])/(n_MCMC*ns)
 
 
-	ns = np.random.choice(range(burning_period,MCMC_iterations), size=size_of_mean, replace=False)
-	for k in ns:
-		F_lamb[i] += model.local_free_energy(samples_memory[k,:])/len(ns)
-		list_of_samples.append(samples_memory[k,:])
-
-	list_of_samples = np.array(list_of_samples)
 
 	# Change parameters descending the gradient
 	grad = model.gradient(list_of_samples) 
 
+
 	# Update with new parametres
 	model.parameters = model.parameters-learning_rate*grad
-	parameters_memory[i,:,:] = model.parameters
+	parameters_memory[i+1] = model.parameters
 
+	print(f'{i}, {F_lamb[i]}, {parameters_memory[i+1]}')
 
 
 np.set_printoptions(precision=3)
-print(f'W is {model.parameters}')
+print(f'# W is {model.parameters}')
 ###############################################
 # Graphics
+
 F_ising = model.exact_model.free_energy()
+
 
 # Evolution of the parameters
 plt.figure()
-for k in range(model.n_samples):
-	for l in range(model.n_samples):
-		if k < l:
-			plt.plot(range(n_variational_loops), parameters_memory[:,k,l], label=f'W_{k},{l}')
-plt.xlabel('Iteration')
-plt.ylabel('Parameters W_ij')
-plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-plt.title(f'JS with lr = {learning_rate}, beta = {beta} and {n_spins} spins')
-#plt.savefig(f"VMC_Jastrow_parameters(lr={learning_rate}).png", bbox_inches="tight")
+plt.plot(range(n_variational_loops+1), parameters_memory)
+plt.ylabel('Parameter W')
+plt.legend()
 
 
 
 plt.figure()
-#plt.plot(range(n_variational_loops+1), F_loc, 'b', ls=':', label = r'$\mathcal{F}_{loc}(\{ b_i \})$')
-plt.plot(range(n_variational_loops), F_lamb, 'b', label = r'$\mathcal{F}_{\lambda}(\{ b_i \})$')
-plt.axhline(y=F_ising, color='g', ls=':', label=r'$\mathcal{F}(\{ b_0 \})$')
-plt.ylabel('Free Energy')
-plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-plt.title(f'JS with lr = {learning_rate}, beta = {beta} and {n_spins} spins')
-#plt.savefig(f"VMC_Jastrow_freeEnergy(lr={learning_rate}).png", bbox_inches="tight")
+plt.plot(range(n_variational_loops), F_lamb, 'b', label = r'Variational $\mathcal{F}_{\lambda}$')
+plt.axhline(y=F_ising, color='g', ls=':', label=r'Analytical $\mathcal{F}$')
+plt.ylabel(r'Free Energy $\mathcal{F}$')
+plt.legend()
+
 
 
 
