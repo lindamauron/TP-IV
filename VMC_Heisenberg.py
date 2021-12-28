@@ -7,16 +7,16 @@ import QMCMC
 
 
 L = 10
-beta = 1e-2
+beta = 1e0
 
 burning_period = 500
 
-n_variational_loops = 50
-learning_rate = 1e-2
+n_variational_loops = 250
+learning_rate = 1e-1
 
 model = Models.Jastrow(L)
 H = DiscreteOperator.Heisenberg(L)
-engine = QMCMC.MCMC(model, H, iterations = 5000)
+engine = QMCMC.MCMC(model, H, iterations = 7000)
 
 
 E = np.zeros( (n_variational_loops,1), dtype=complex )
@@ -28,9 +28,14 @@ for i in range(n_variational_loops):
 
 	# do MCMC with given parameters for the probability
 	samples_memory, E_loc = engine.run()
+	'''
+	plt.figure()
+	plt.plot(E_loc)
+	plt.title(f'iteration={i}')
+	plt.show()
+	'''
 
-
-	E[i] = E_loc.mean()
+	E[i] = E_loc[burning_period:].mean()
 
 	# Change parameters descending the gradient
 	grad = model.gradient( H, samples_memory[burning_period:] ) 
@@ -53,10 +58,10 @@ np.set_printoptions(precision=3)
 
 #-35.61754612
 plt.figure()
-plt.plot(E.real, 'b', label='real part')
+plt.plot(E.real, 'b', label=r'$E_\lambda$')
 #plt.plot(E.imag, 'r', label='imaginary part')
 #plt.plot(np.absolute(E), 'k', label='modulus')
-plt.axhline(y=-18.06178542, label=r'$E_0$')
+plt.axhline(y=-18.06178542, label=r'$E_0$', color='g', ls=':')
 plt.xlabel('Iteration')
 plt.ylabel("Energy")
 plt.legend()

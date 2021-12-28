@@ -32,7 +32,7 @@ for i in range(n_variational_loops):
 	samples_memory, E_loc = engine.run( samples_memory[-1] )
 
 
-	E[i] = E_loc.mean()
+	E[i] = E_loc[burning_period:].mean()
 	#print(samples_memory[burning_period:])
 
 	# Change parameters descending the gradient

@@ -12,11 +12,11 @@ beta = 1e-2
 burning_period = 500
 
 n_variational_loops = 50
-learning_rate = 1e0
+learning_rate = 1e-1
 
 model = Models.MeanField(L)
 H = DiscreteOperator.IsingTransverse(L)
-engine = QMCMC.MCMC(model, H, iterations = 5000)
+engine = QMCMC.MCMC(model, H, iterations = 7000)
 
 
 E = np.zeros( (n_variational_loops,1), dtype=complex )
@@ -30,7 +30,7 @@ for i in range(n_variational_loops):
 	samples_memory, E_loc = engine.run()
 
 
-	E[i] = E_loc.mean()
+	E[i] = E_loc[burning_period:].mean()
 
 	# Change parameters descending the gradient
 	grad = model.gradient( H, samples_memory[burning_period:] ) 
