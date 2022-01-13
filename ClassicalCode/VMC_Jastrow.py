@@ -15,7 +15,7 @@ beta = 1e0 #[eV]
 
 n_variational_loops = 500
 
-learning_rate = 1e-2
+learning_rate = 1e-3
 
 MCMC_iterations=5000
 burning_period = 2000

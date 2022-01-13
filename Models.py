@@ -173,7 +173,7 @@ class MeanField(Model):
 		'''
 		self.name = "Mean Field"
 		self.length = length
-		self.parameters = np.zeros((1,1)) #np.random.normal()
+		self.parameters = np.ones((1,1)) #np.random.normal()
 
 	def log_psi(self, sample):
 		'''

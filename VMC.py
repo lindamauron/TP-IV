@@ -11,7 +11,7 @@ L = 10
 
 burning_period = 2000
 
-n_variational_loops = 5
+n_variational_loops = 10
 learning_rate = 1e-2
 
 model = Models.MeanField(L)
