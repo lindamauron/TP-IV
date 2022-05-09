@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 import Models
 import DiscreteOperator
-import QMCMC
+import MCMC
 
 
 L = 10
@@ -16,7 +16,7 @@ learning_rate = 1e-2
 
 model = Models.MeanField(L)
 H = DiscreteOperator.Heisenberg(L,J=-1)
-engine = QMCMC.MCMC(model, H, iterations = 7000)
+engine = MCMC.Quantum(model, H, iterations = 7000)
 
 engine.print_infos()
 print(f'T_therm = {burning_period}, learning_rate={learning_rate}, n={n_variational_loops}')

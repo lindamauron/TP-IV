@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import Models
 import DiscreteOperator
-import QMCMC
+import MCMC
 
 
 L = 20
@@ -15,7 +15,7 @@ learning_rate = 1e-2
 
 model = Models.Jastrow(L)
 H = DiscreteOperator.IsingTransverse(L)
-engine = QMCMC.MCMC(model, H, iterations = 1000)
+engine = MCMC.Quantum(model, H, iterations = 1000)
 
 
 E = np.zeros( (n_variational_loops,1), dtype=complex )

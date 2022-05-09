@@ -159,6 +159,6 @@ class Heisenberg:
 		E = np.zeros( (n_conns,1) )
 		E[0] = sample.T@np.roll(sample, -1)
 		for i in range(1,n_conns):
-			E[i] = 1 - sample[i-1]*sample[i%self.length]
+			E[i] = 1 - s_prime[i,i-1]*s_prime[i,i%self.length]
 
 		return self.J*E, s_prime, n_conns

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import Models
 import DiscreteOperator
-import QMCMC
+import MCMC
 import time
 
 L = 20
@@ -16,7 +16,7 @@ learning_rate = 1e-1
 '''
 model = Models.MeanField(L)
 H = DiscreteOperator.IsingTransverse(beta, L)
-engine = QMCMC.MCMC(model, H, iterations = 1000)
+engine = MCMC.Quantum(model, H, iterations = 1000)
 
 
 engine.print_infos()
