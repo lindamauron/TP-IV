@@ -89,7 +89,7 @@ class Continuous:
 
 		#Choose randomly spin to flip
 		spin_to_flip = np.random.randint(0,sample.size, size=iterations)
-		moves = np.random.normal(scale=self.std, size=(iterations,sample.size) ) # Gaussian of chosen std
+		moves = np.random.normal(scale=self.std, size=(iterations) ) # Gaussian of chosen std
 		eta = np.random.uniform(size=iterations) # Uniform random number for MCMC step
 
 		accepted = 0 # For the acceptance ratio
@@ -98,7 +98,7 @@ class Continuous:
 
 
 			new_sample = np.copy(sample)
-			new_sample[k] += moves[i,k]
+			new_sample[k] += moves[i]
 
 			#Compute test (with unnormalized probability)
 			R = np.exp(log_prob(new_sample) - log_prob(sample)) 

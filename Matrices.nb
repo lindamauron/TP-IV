@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[    303596,       6726]
-NotebookOptionsPosition[    294252,       6578]
-NotebookOutlinePosition[    294767,       6597]
-CellTagsIndexPosition[    294724,       6594]
+NotebookDataLength[    295072,       6482]
+NotebookOptionsPosition[    285999,       6340]
+NotebookOutlinePosition[    286511,       6359]
+CellTagsIndexPosition[    286468,       6356]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -6325,259 +6325,21 @@ tnRyAt4/nJfx5TXeDwfpXX3/QN4Pb41yQdLLP4JyQIq6zFrO/wOox/ku
   "Out[329]=",ExpressionUUID->"439ffc84-5ab0-49b9-84cb-39b42eb3d819"]
 }, Open  ]],
 
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{
-  RowBox[{
-   RowBox[{"Q", " ", "=", " ", 
-    RowBox[{"Sum", "[", " ", 
-     RowBox[{
-      RowBox[{"Sum", "[", " ", 
-       RowBox[{
-        RowBox[{
-         RowBox[{"Exp", "[", " ", 
-          RowBox[{
-           RowBox[{"Sum", "[", 
-            RowBox[{
-             SubscriptBox["h", "i"], ",", 
-             RowBox[{"{", 
-              RowBox[{"i", ",", "N"}], "}"}]}], "]"}], " ", "-", 
-           RowBox[{"2", 
-            SubscriptBox["h", "\[Alpha]"]}], " ", "-", " ", 
-           RowBox[{"2", 
-            SubscriptBox["h", "\[Beta]"]}]}], "]"}], "*", 
-         RowBox[{"Exp", "[", 
-          RowBox[{"0.5", "*", 
-           RowBox[{
-            RowBox[{"(", 
-             RowBox[{
-              SubscriptBox["K", "0"], "-", 
-              RowBox[{"2", 
-               SubscriptBox["K", "\[Alpha]"]}], "-", 
-              RowBox[{"2", 
-               SubscriptBox["K", "\[Beta]"]}]}], ")"}], ".", 
-            SuperscriptBox["K", 
-             RowBox[{"-", "1"}]], ".", 
-            RowBox[{"Transpose", "[", 
-             RowBox[{
-              SubscriptBox["K", "0"], "-", 
-              RowBox[{"2", 
-               SubscriptBox["K", "\[Alpha]"]}], "-", 
-              RowBox[{"2", 
-               SubscriptBox["K", "\[Beta]"]}]}], "]"}]}]}], "]"}]}], ",", " ", 
-        RowBox[{"{", 
-         RowBox[{"\[Alpha]", ",", 
-          RowBox[{"\[Beta]", "-", "1"}]}], "}"}]}], "]"}], ",", " ", 
-      RowBox[{"{", 
-       RowBox[{"\[Beta]", ",", "N"}], "}"}]}], "]"}]}], ";"}], 
-  "\[IndentingNewLine]"}]], "Input",
+Cell[BoxData["\[IndentingNewLine]"], "Input",
  CellFrame->{{0, 0}, {0, 3}},
  CellFrameColor->GrayLevel[0.75],
  CellChangeTimes->{{3.8605570423173327`*^9, 3.8605573195981054`*^9}, {
-  3.8605574795095663`*^9, 3.8605575069838037`*^9}, {3.8605575588943396`*^9, 
-  3.8605577083286185`*^9}},ExpressionUUID->"bb55ee0d-a9b3-4536-ac04-\
-913bfb789e83"],
+   3.8605574795095663`*^9, 3.8605575069838037`*^9}, {3.8605575588943396`*^9, 
+   3.8605577083286185`*^9}, 3.8611551171726065`*^9},
+ CellLabel->"In[3]:=",ExpressionUUID->"bb55ee0d-a9b3-4536-ac04-913bfb789e83"],
 
-Cell[BoxData[
- RowBox[{
-  UnderoverscriptBox["\[Sum]", "\[Beta]", "N"], 
-  RowBox[{"(", 
-   RowBox[{
-    UnderoverscriptBox["\[Sum]", "\[Alpha]", 
-     RowBox[{
-      RowBox[{"-", "1"}], "+", "\[Beta]"}]], 
-    SuperscriptBox["\[ExponentialE]", 
-     RowBox[{
-      RowBox[{"0.5`", " ", 
-       RowBox[{
-        RowBox[{"(", 
-         RowBox[{
-          SubscriptBox["K", "0"], "-", 
-          RowBox[{"2", " ", 
-           SubscriptBox["K", "\[Alpha]"]}], "-", 
-          RowBox[{"2", " ", 
-           SubscriptBox["K", "\[Beta]"]}]}], ")"}], ".", 
-        FractionBox["1", "K"], ".", 
-        RowBox[{"Transpose", "[", 
-         RowBox[{
-          SubscriptBox["K", "0"], "-", 
-          RowBox[{"2", " ", 
-           SubscriptBox["K", "\[Alpha]"]}], "-", 
-          RowBox[{"2", " ", 
-           SubscriptBox["K", "\[Beta]"]}]}], "]"}]}]}], "-", 
-      RowBox[{"2", " ", 
-       SubscriptBox["h", "\[Alpha]"]}], "-", 
-      RowBox[{"2", " ", 
-       SubscriptBox["h", "\[Beta]"]}], "+", 
-      RowBox[{
-       UnderoverscriptBox["\[Sum]", "i", "N"], 
-       SubscriptBox["h", "i"]}]}]]}], ")"}]}]], "Output",
- CellChangeTimes->{3.86055768662303*^9},
- CellLabel->"Out[1]=",ExpressionUUID->"7de516ec-0e2d-4c73-a55a-e38883efddc6"]
-}, Open  ]],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"Simplify", "[", 
-  RowBox[{"D", "[", 
-   RowBox[{"Q", ",", " ", 
-    SubscriptBox["h", "k"]}], "]"}], "]"}]], "Input",
- CellChangeTimes->{{3.86055773085968*^9, 3.8605577883456783`*^9}},
- CellLabel->"In[5]:=",ExpressionUUID->"f73dd7c8-b6e3-4ecc-9dbb-65b9976f8bd6"],
-
-Cell[BoxData[
- RowBox[{
-  UnderoverscriptBox["\[Sum]", "\[Beta]", "N"], 
-  RowBox[{
-   UnderoverscriptBox["\[Sum]", "\[Alpha]", 
-    RowBox[{
-     RowBox[{"-", "1"}], "+", "\[Beta]"}]], 
-   RowBox[{"(", 
-    RowBox[{"0.`", "\[VeryThinSpace]", "-", 
-     RowBox[{"2", " ", 
-      SuperscriptBox["\[ExponentialE]", 
-       RowBox[{
-        RowBox[{"0.5`", " ", 
-         RowBox[{
-          RowBox[{"(", 
-           RowBox[{
-            SubscriptBox["K", "0"], "-", 
-            RowBox[{"2", " ", 
-             SubscriptBox["K", "\[Alpha]"]}], "-", 
-            RowBox[{"2", " ", 
-             SubscriptBox["K", "\[Beta]"]}]}], ")"}], ".", 
-          FractionBox["1", "K"], ".", 
-          RowBox[{"Transpose", "[", 
-           RowBox[{
-            SubscriptBox["K", "0"], "-", 
-            RowBox[{"2", " ", 
-             SubscriptBox["K", "\[Alpha]"]}], "-", 
-            RowBox[{"2", " ", 
-             SubscriptBox["K", "\[Beta]"]}]}], "]"}]}]}], "-", 
-        RowBox[{"2", " ", 
-         SubscriptBox["h", "\[Alpha]"]}], "-", 
-        RowBox[{"2", " ", 
-         SubscriptBox["h", "\[Beta]"]}], "+", 
-        RowBox[{
-         UnderoverscriptBox["\[Sum]", "i", "N"], 
-         SubscriptBox["h", "i"]}]}]], " ", 
-      TemplateBox[{
-        RowBox[{"k", ",", "\[Alpha]"}]},
-       "KroneckerDeltaSeq"]}], "-", 
-     RowBox[{"2", " ", 
-      SuperscriptBox["\[ExponentialE]", 
-       RowBox[{
-        RowBox[{"0.5`", " ", 
-         RowBox[{
-          RowBox[{"(", 
-           RowBox[{
-            SubscriptBox["K", "0"], "-", 
-            RowBox[{"2", " ", 
-             SubscriptBox["K", "\[Alpha]"]}], "-", 
-            RowBox[{"2", " ", 
-             SubscriptBox["K", "\[Beta]"]}]}], ")"}], ".", 
-          FractionBox["1", "K"], ".", 
-          RowBox[{"Transpose", "[", 
-           RowBox[{
-            SubscriptBox["K", "0"], "-", 
-            RowBox[{"2", " ", 
-             SubscriptBox["K", "\[Alpha]"]}], "-", 
-            RowBox[{"2", " ", 
-             SubscriptBox["K", "\[Beta]"]}]}], "]"}]}]}], "-", 
-        RowBox[{"2", " ", 
-         SubscriptBox["h", "\[Alpha]"]}], "-", 
-        RowBox[{"2", " ", 
-         SubscriptBox["h", "\[Beta]"]}], "+", 
-        RowBox[{
-         UnderoverscriptBox["\[Sum]", "i", "N"], 
-         SubscriptBox["h", "i"]}]}]], " ", 
-      TemplateBox[{
-        RowBox[{"k", ",", "\[Beta]"}]},
-       "KroneckerDeltaSeq"]}], "+", 
-     RowBox[{
-      SuperscriptBox["\[ExponentialE]", 
-       RowBox[{
-        RowBox[{"0.5`", " ", 
-         RowBox[{
-          RowBox[{"(", 
-           RowBox[{
-            SubscriptBox["K", "0"], "-", 
-            RowBox[{"2", " ", 
-             SubscriptBox["K", "\[Alpha]"]}], "-", 
-            RowBox[{"2", " ", 
-             SubscriptBox["K", "\[Beta]"]}]}], ")"}], ".", 
-          FractionBox["1", "K"], ".", 
-          RowBox[{"Transpose", "[", 
-           RowBox[{
-            SubscriptBox["K", "0"], "-", 
-            RowBox[{"2", " ", 
-             SubscriptBox["K", "\[Alpha]"]}], "-", 
-            RowBox[{"2", " ", 
-             SubscriptBox["K", "\[Beta]"]}]}], "]"}]}]}], "-", 
-        RowBox[{"2", " ", 
-         SubscriptBox["h", "\[Alpha]"]}], "-", 
-        RowBox[{"2", " ", 
-         SubscriptBox["h", "\[Beta]"]}], "+", 
-        RowBox[{
-         UnderoverscriptBox["\[Sum]", "i", "N"], 
-         SubscriptBox["h", "i"]}]}]], " ", 
-      RowBox[{"(", 
-       TagBox[GridBox[{
-          {"\[Piecewise]", GridBox[{
-             {
-              RowBox[{"1", "-", 
-               RowBox[{"Ceiling", "[", "k", "]"}], "+", 
-               RowBox[{"Floor", "[", "k", "]"}]}], 
-              RowBox[{
-               RowBox[{
-                RowBox[{"Re", "[", "k", "]"}], "\[GreaterEqual]", "1"}], "&&", 
-               RowBox[{
-                RowBox[{"N", "-", 
-                 RowBox[{"Re", "[", "k", "]"}]}], "\[GreaterEqual]", "0"}], "&&", 
-               RowBox[{
-                RowBox[{"Im", "[", "k", "]"}], "\[Equal]", "0"}]}]},
-             {"0", 
-              TagBox["True",
-               "PiecewiseDefault",
-               AutoDelete->True]}
-            },
-            AllowedDimensions->{2, Automatic},
-            Editable->True,
-            GridBoxAlignment->{"Columns" -> {{Left}}, "Rows" -> {{Baseline}}},
-            GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{1.}}},
-            GridBoxSpacings->{"Columns" -> {
-                Offset[0.27999999999999997`], {
-                 Offset[0.84]}, 
-                Offset[0.27999999999999997`]}, "Rows" -> {
-                Offset[0.2], {
-                 Offset[0.4]}, 
-                Offset[0.2]}},
-            Selectable->True]}
-         },
-         GridBoxAlignment->{"Columns" -> {{Left}}, "Rows" -> {{Baseline}}},
-         GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{1.}}},
-         GridBoxSpacings->{"Columns" -> {
-             Offset[0.27999999999999997`], {
-              Offset[0.35]}, 
-             Offset[0.27999999999999997`]}, "Rows" -> {
-             Offset[0.2], {
-              Offset[0.4]}, 
-             Offset[0.2]}}],
-        "Piecewise",
-        DeleteWithContents->True,
-        Editable->False,
-        SelectWithContents->True,
-        Selectable->False,
-        StripWrapperBoxes->True], ")"}]}]}], ")"}]}]}]], "Output",
- CellChangeTimes->{
-  3.860557743698914*^9, {3.860557776635356*^9, 3.8605577889333906`*^9}},
- CellLabel->"Out[5]=",ExpressionUUID->"22a1d84e-7086-4eea-8b36-4485a3c53350"]
-}, Open  ]]
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.86055773085968*^9, 3.8605577883456783`*^9}, 
+   3.861155119571563*^9},
+ CellLabel->"In[4]:=",ExpressionUUID->"f73dd7c8-b6e3-4ecc-9dbb-65b9976f8bd6"]
 },
-WindowSize->{960, 478},
-WindowMargins->{{-5.5, Automatic}, {Automatic, -5.5}},
+WindowSize->{949., 472.5},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
 TaggingRules->Association[
  "SlideshowSettings" -> Association["Toolbar" -> True]],
 Magnification:>1.1 Inherited,
@@ -6720,14 +6482,8 @@ Cell[CellGroupData[{
 Cell[152773, 4160, 757, 18, 31, "Input",ExpressionUUID->"bdcfb197-1eb1-4520-9422-9358c5811aca"],
 Cell[153533, 4180, 131858, 2144, 306, "Output",ExpressionUUID->"439ffc84-5ab0-49b9-84cb-39b42eb3d819"]
 }, Open  ]],
-Cell[CellGroupData[{
-Cell[285428, 6329, 1846, 50, 92, "Input",ExpressionUUID->"bb55ee0d-a9b3-4536-ac04-913bfb789e83"],
-Cell[287277, 6381, 1230, 35, 67, "Output",ExpressionUUID->"7de516ec-0e2d-4c73-a55a-e38883efddc6"]
-}, Open  ]],
-Cell[CellGroupData[{
-Cell[288544, 6421, 287, 6, 31, "Input",ExpressionUUID->"f73dd7c8-b6e3-4ecc-9dbb-65b9976f8bd6"],
-Cell[288834, 6429, 5402, 146, 140, "Output",ExpressionUUID->"22a1d84e-7086-4eea-8b36-4485a3c53350"]
-}, Open  ]]
+Cell[285406, 6327, 389, 6, 65, "Input",ExpressionUUID->"bb55ee0d-a9b3-4536-ac04-913bfb789e83"],
+Cell[285798, 6335, 197, 3, 31, "Input",ExpressionUUID->"f73dd7c8-b6e3-4ecc-9dbb-65b9976f8bd6"]
 }
 ]
 *)
