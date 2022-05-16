@@ -7,7 +7,7 @@ Classes :
 	- IsingTransverse H = -J sum Z_i Z_i+1 -h sum X_i
 	- X,Y,Z : Pauli matrices
 
-- QMCMC (engine to run MCMC loops)
+- MCMC (engine to run MCMC loops)
 
 
 Tests of classes : 
@@ -24,3 +24,5 @@ Folders :
 - Ising_Analytical : graphs on the exact analytical results of the Ising model in 1D
 - ClassicalCode : Code and results of the VMC on MeanField and Jastrow model
 		  The Jastrow partition function is only correct for N_spins <= 3
+- Angles_canceled : project about continuous space of angles : won't continue
+- VMC : Codes for quantum MCMC (Semester 1)

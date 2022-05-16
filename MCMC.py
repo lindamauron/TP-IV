@@ -3,6 +3,45 @@ import matplotlib.pyplot as plt
 import scipy.special
 from numba import jit
 
+
+class Discrete:
+	'''Monte-Carlo with Markov Chains implementation'''
+
+	def run(self, sample, log_prob, iterations=5000):
+		'''
+		Executes the MCMC algorithm
+		Input :
+		sample (1D array): initial spins of the sample 
+		Return : list of used samples (2D array)
+		'''
+
+		list_of_samples = np.tile( 0*sample, (iterations,1) )
+
+		#Choose randomly spin to flip
+		spin_to_flip = np.random.randint(0,sample.size, size=iterations)
+		eta = np.random.uniform(size=iterations) # Uniform random number for MCMC step
+
+		accepted = 0 # For the acceptance ratio
+		for i in range(iterations):
+			#Choose randomly spin to flip
+			new_sample = np.copy(sample)
+			new_sample[spin_to_flip[i]] *= -1
+
+			#Compute test (with unnormalized probability bc. of division btw both)
+			R = np.exp( log_prob(new_sample) - log_prob(sample) )
+
+			if R > eta[i]:
+				sample = new_sample
+				accepted += 1
+	
+
+			# Save the sample
+			list_of_samples[i] = sample
+
+		print(f'Acceptance rate : {accepted/iterations}')
+		return list_of_samples
+
+
 class Quantum:
 	'''Monte-Carlo with Markov Chains implementation'''
 
@@ -89,7 +128,7 @@ class Continuous:
 
 		#Choose randomly spin to flip
 		spin_to_flip = np.random.randint(0,sample.size, size=iterations)
-		moves = np.random.normal(scale=self.std, size=(iterations) ) # Gaussian of chosen std
+		moves = np.random.normal(scale=self.std, size=(iterations,1) ) # Gaussian of chosen std
 		eta = np.random.uniform(size=iterations) # Uniform random number for MCMC step
 
 		accepted = 0 # For the acceptance ratio
@@ -99,6 +138,60 @@ class Continuous:
 
 			new_sample = np.copy(sample)
 			new_sample[k] += moves[i]
+
+			#Compute test (with unnormalized probability)
+			R = np.exp(log_prob(new_sample) - log_prob(sample)) 
+			#print(R)
+
+			if R > eta[i]:
+				sample = np.copy(new_sample)
+				accepted += 1
+
+
+			# Save the sample
+			list_of_samples[i] = np.copy(sample)
+
+		print(f'Acceptance rate : {accepted/iterations}')
+		return list_of_samples
+
+
+class Multivariate:	
+	'''Monte-Carlo with Markov Chains implementation for continuous variables'''
+
+	def __init__(self, cov):
+		self.cov = cov
+
+
+	def print_infos(self):
+		print(f'The Covaraiance matrix is : {self.cov}')
+		print('-----------------------------------------')
+
+
+
+	def run(self, sample, log_prob, iterations=5000):
+		'''
+		Executes the MCMC algorithm
+		Input :
+		sample (1D array): 	initial spins of the sample 
+		Return : list of used samples (2D array)
+		'''
+
+		# Prepare vector to receive all generated samples
+		list_of_samples = np.tile( 0*sample, (iterations,1) )
+
+
+		#Choose randomly spin to flip
+		#spin_to_flip = np.random.randint(0,sample.size, size=iterations)
+		moves = np.random.multivariate_normal(mean=np.zeros(sample.shape),cov=self.cov, size=(iterations) ) # Gaussian of chosen std
+		eta = np.random.uniform(size=iterations) # Uniform random number for MCMC step
+
+		accepted = 0 # For the acceptance ratio
+		for i in range(iterations):
+			#k = spin_to_flip[i]
+
+
+			new_sample =  sample + moves[i]
+			#new_sample[k] += moves[i]
 
 			#Compute test (with unnormalized probability)
 			R = np.exp(log_prob(new_sample) - log_prob(sample)) 
