@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.special
-from numba import jit
+#import scipy.special
+#from numba import jit
 
 
 class Discrete:
