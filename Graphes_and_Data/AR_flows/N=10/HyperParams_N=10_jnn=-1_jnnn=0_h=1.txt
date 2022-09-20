@@ -1,0 +1,4 @@
+hidden_size : 10
+mlp_layers1 : [5, 10]
+mlp_layers2 : [6, 4, 1]
+p : h=1, jnn=-1, jnnn=0, beta=1, pbc=True

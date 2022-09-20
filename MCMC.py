@@ -207,3 +207,63 @@ class Multivariate:
 
 		print(f'Acceptance rate : {accepted/iterations}')
 		return list_of_samples
+
+
+class Sphere:
+	'''Monte-Carlo with Markov Chains implementation'''
+
+	def move(self, x, i, std):
+		'''
+		x : array in cartesian coordinates
+		std : standard deviation in the cartesian space 
+			(does not correspond to a std for the angles)
+		'''
+		x_new = np.copy(x)
+		x_new[i] = np.random.normal(x[i], std, size=x.shape[-1])
+		x_new[i] /= np.linalg.norm(x_new[i])
+
+		return x_new, self.cartesian_to_spherical(x_new)
+
+	def cartesian_to_spherical(self, x):
+		phi = np.arctan2(x[:,1],x[:,0])
+		theta = np.arctan2(np.sqrt(x[:,0]**2 + x[:,1]**2), x[:,2])
+
+		return np.array([theta, phi])
+
+
+
+	def run(self, angles, log_prob, std = 1, iterations=5000):
+		'''
+		Executes the MCMC algorithm
+		Input :
+		Return : list of used samples (2D array)
+		'''
+		sample_cart = np.array([np.sin(angles[0])*np.cos(angles[1]), np.sin(angles[0])*np.sin(angles[1]), np.cos(angles[1])])
+		sample_spher = angles
+
+		list_of_samples = np.tile( 0*sample_spher, (iterations,1) )
+
+		#Choose randomly spin to flip
+		to_move = np.random.randint(0,sample.size, size=iterations)
+		eta = np.random.uniform(size=iterations) # Uniform random number for MCMC step
+
+		accepted = 0 # For the acceptance ratio
+		for i in range(iterations):
+			#Choose randomly spin to flip
+			new_sample_cart, new_sample_spher = move(sample_cart, i, std)
+
+
+			#Compute test (with unnormalized probability bc. of division btw both)
+			R = np.exp( log_prob(new_sample_spher) - log_prob(sample_spher) )
+
+			if R > eta[i]:
+				sample_spher = new_sample_spher
+				sample_cart = new_sample_cart
+				accepted += 1
+	
+
+			# Save the sample
+			list_of_samples[i] = sample_spher
+
+		print(f'Acceptance rate : {accepted/iterations}')
+		return list_of_samples

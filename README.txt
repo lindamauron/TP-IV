@@ -1,4 +1,17 @@
+## TP IV
+Main project : Learning the ising partition function 
+For this, open Learning_Ising.ipynb and just follow the notebook !
+It allows to learn the partition function of any hamiltonian on a spin up/down hilbert space with any number of particles, as long as there are interactions between spins and an external field. 
+
+
 Explaination of different files
+
+Notebooks : 
+- Auto_regressive_flows.ipynb : Process for learning toy-models
+- Diffusion_model.ipynb : Attempt at learning toy models using a diffusion model : currently not working
+- Ising_partition_function_MCMC.ipynb : Visualize a Ising model and test its HST 
+- Learning_Ising.ipynb : Final working algorithm to learn the partition function
+
 
 Classes : 
 - Models:- MeanField.py (Mean field approximation psi(s) = exp(sum bi si)
@@ -26,3 +39,4 @@ Folders :
 		  The Jastrow partition function is only correct for N_spins <= 3
 - Angles_canceled : project about continuous space of angles : won't continue
 - VMC : Codes for quantum MCMC (Semester 1)
+- Graphes_and_Data : graphics and data of the converged solutions for the Ising HST
